@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Video Speed Controller</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="app-shell" data-theme="auto">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32">
+              <path d="M6 21.5V10.5C6 8.6 7.55 7 9.45 7h13.1C24.45 7 26 8.6 26 10.5v11c0 1.9-1.55 3.5-3.45 3.5H9.45C7.55 25 6 23.4 6 21.5Z"></path>
+              <path d="M13 11.5 21 16l-8 4.5v-9Z"></path>
+            </svg>
+          </div>
+          <div>
+            <h1>Video Speed</h1>
+            <div class="status-line">
+              <span class="status-dot" id="statusDot"></span>
+              <span id="statusText">Connecting</span>
+            </div>
+          </div>
+        </div>
+        <label class="power-toggle" title="Enable extension">
+          <input id="enabledToggle" type="checkbox" checked>
+          <span></span>
+        </label>
+      </header>
+
+      <section class="hero-panel">
+        <div class="dial-wrap" aria-label="Playback speed">
+          <svg class="speed-dial" viewBox="0 0 160 160" aria-hidden="true">
+            <defs>
+              <linearGradient id="dialGradient" x1="20" y1="20" x2="140" y2="140">
+                <stop offset="0" stop-color="#ff0033"></stop>
+                <stop offset="0.55" stop-color="#ff4b62"></stop>
+                <stop offset="1" stop-color="#66e3ff"></stop>
+              </linearGradient>
+            </defs>
+            <circle class="dial-track" cx="80" cy="80" r="64"></circle>
+            <circle class="dial-progress" id="dialProgress" cx="80" cy="80" r="64"></circle>
+          </svg>
+          <div class="speed-display">
+            <button class="round-control" id="decreaseBtn" type="button" aria-label="Decrease speed">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg>
+            </button>
+            <div class="speed-readout">
+              <strong id="speedValue">1x</strong>
+              <span>Playback speed</span>
+            </div>
+            <button class="round-control" id="increaseBtn" type="button" aria-label="Increase speed">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="preset-grid" id="presetGrid" aria-label="Speed presets"></div>
+      </section>
+
+      <section class="info-card">
+        <div class="section-heading">
+          <h2>Now Playing</h2>
+          <span id="tabStatus">Active tab</span>
+        </div>
+        <p class="video-title" id="videoTitle">Open a page with video to sync controls.</p>
+        <div class="progress-row">
+          <span id="currentTime">0:00</span>
+          <div class="video-progress"><span id="videoProgress"></span></div>
+          <span id="duration">0:00</span>
+        </div>
+        <div class="metric-row">
+          <div><span>Speed</span><strong id="infoSpeed">1x</strong></div>
+          <div><span>Domain</span><strong id="domainText">youtube.com</strong></div>
+        </div>
+      </section>
+
+      <section class="settings-panel">
+        <div class="section-heading">
+          <h2>Smart Settings</h2>
+          <span>Synced</span>
+        </div>
+        <div class="settings-grid" id="settingsGrid"></div>
+        <div class="split-controls">
+          <label class="select-field">
+            <span>Startup speed</span>
+            <select id="startupSpeed"></select>
+          </label>
+          <label class="select-field">
+            <span>Native menus</span>
+            <select id="defaultNativeMode" title="How to treat site-native speed controls">
+              <option value="override">Override (default)</option>
+              <option value="sync">Sync with native</option>
+            </select>
+          </label>
+          <div class="theme-switch" aria-label="Theme mode">
+            <button type="button" data-theme-choice="auto">Auto</button>
+            <button type="button" data-theme-choice="dark">Dark</button>
+            <button type="button" data-theme-choice="light">Light</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="site-panel">
+        <div class="section-heading">
+          <h2>This website</h2>
+          <span id="sitePanelHint">Domain rules</span>
+        </div>
+        <p class="site-domain-line"><span id="siteDomainLabel">—</span></p>
+        <label class="setting-toggle site-toggle">
+          <input id="siteDisableToggle" type="checkbox">
+          <span class="mini-switch"></span>
+          <span class="setting-copy"><strong>Disable extension here</strong><span>Shortcuts, widget, and wheel stop on this domain</span></span>
+        </label>
+        <label class="select-field site-native-field">
+          <span>Speed control mode</span>
+          <select id="siteNativeMode">
+            <option value="default">Use default (above)</option>
+            <option value="override">Override native</option>
+            <option value="sync">Sync with native</option>
+          </select>
+        </label>
+        <div class="section-heading subheading">
+          <h3>Allow list</h3>
+          <span>Optional</span>
+        </div>
+        <p class="muted-copy">Restrict the extension to certain domains, or block specific domains. One host per line (for example <code>netflix.com</code>).</p>
+        <label class="select-field">
+          <span>List mode</span>
+          <select id="accessModeSelect">
+            <option value="all">All websites (default)</option>
+            <option value="whitelist">Whitelist only</option>
+            <option value="blacklist">Blacklist</option>
+          </select>
+        </label>
+        <textarea id="accessListInput" class="access-list" rows="4" spellcheck="false" placeholder="example.com&#10;sub.example.org"></textarea>
+        <button class="ghost-button full-width" id="saveAccessList" type="button">Save list</button>
+      </section>
+
+      <section class="shortcuts-panel">
+        <div class="section-heading">
+          <h2>Shortcuts</h2>
+          <button class="ghost-button" id="resetShortcuts" type="button">Reset</button>
+        </div>
+        <div class="search-wrap">
+          <input id="shortcutSearch" type="search" placeholder="Search shortcuts">
+          <span id="conflictWarning" class="conflict-warning" hidden>Conflict detected</span>
+        </div>
+        <div class="shortcut-list" id="shortcutList"></div>
+      </section>
+
+      <section class="analytics-panel">
+        <div class="section-heading">
+          <h2>Insights</h2>
+          <span>Lightweight</span>
+        </div>
+        <div class="analytics-grid">
+          <div><span>Time saved</span><strong id="timeSaved">0m</strong></div>
+          <div><span>Most used</span><strong id="mostUsed">1x</strong></div>
+          <div><span>Today</span><strong id="dailyUsage">0m</strong></div>
+          <div><span>Session avg</span><strong id="sessionAverage">1x</strong></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
