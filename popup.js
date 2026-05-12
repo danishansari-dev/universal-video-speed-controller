@@ -615,7 +615,24 @@ const init = async () => {
   activeTabId = (await getActiveTab())?.id || null;
   renderPresets();
 
-  const nextState = await sendMessage({ type: "YSC_GET_STATE" });
+  // Retry a few times — content script may not have loaded yet on freshly-focused tabs
+  let nextState = null;
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY_MS = 500;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    nextState = await sendMessage({ type: "YSC_GET_STATE" });
+
+    if (nextState?.hasVideo) {
+      break;
+    }
+
+    // On first attempt, if we got a valid response but no video, wait and retry
+    // The content script may still be initializing or detecting the video
+    if (attempt < MAX_RETRIES) {
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+    }
+  }
 
   if (nextState) {
     state = nextState;
