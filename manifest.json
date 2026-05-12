@@ -1,15 +1,31 @@
 {
   "manifest_version": 3,
   "name": "Universal Video Speed Controller",
-  "description": "Playback speed controls for HTML5 video on any website — shortcuts, floating widget, popup, and per-site memory.",
+  "description": "Playback speed controls for HTML5 video on any website - shortcuts, floating widget, popup, and per-site memory.",
   "version": "0.2.0",
   "action": {
     "default_title": "Video Speed Controller",
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "assets/icons/icon-16.png",
+      "32": "assets/icons/icon-32.png",
+      "48": "assets/icons/icon-48.png",
+      "128": "assets/icons/icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "assets/icons/icon-16.png",
+    "32": "assets/icons/icon-32.png",
+    "48": "assets/icons/icon-48.png",
+    "128": "assets/icons/icon-128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
   },
   "permissions": [
     "activeTab",
-    "storage"
+    "storage",
+    "tabs"
   ],
   "content_scripts": [
     {
@@ -22,6 +38,7 @@
         "https://chromewebstore.google.com/*"
       ],
       "js": [
+        "constants.js",
         "content.js"
       ],
       "css": [

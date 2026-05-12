@@ -57,34 +57,20 @@
     { length: Math.round((MAX_PLAYBACK_RATE - MIN_PLAYBACK_RATE) / SPEED_STEP) + 1 },
     (_, index) => Number((MIN_PLAYBACK_RATE + (index * SPEED_STEP)).toFixed(2))
   );
-  const DEFAULT_SHORTCUTS = {
-    increase: { label: "Shift + .", code: "Period", shift: true },
-    decrease: { label: "Shift + ,", code: "Comma", shift: true },
-    reset: { label: "Shift + Backspace", code: "Backspace", shift: true },
-    boost: { label: "X (hold)", code: "KeyX", hold: true },
-    widgetToggle: { label: "Shift + S", code: "KeyS", shift: true },
-    overlayToggle: { label: "Shift + H", code: "KeyH", shift: true },
-    preset1: { label: "Alt + 1", code: "Digit1", alt: true },
-    preset2: { label: "Alt + 2", code: "Digit2", alt: true },
-    preset3: { label: "Alt + 3", code: "Digit3", alt: true },
-    preset4: { label: "Alt + 4", code: "Digit4", alt: true },
-    preset5: { label: "Alt + 5", code: "Digit5", alt: true },
-    preset10: { label: "Alt + 0", code: "Digit0", alt: true }
-  };
-  const PRESET_ACTION_RATES = {
-    preset1: 1,
-    preset2: 2,
-    preset3: 3,
-    preset4: 4,
-    preset5: 5,
-    preset10: 10
-  };
+  const DEFAULT_SHORTCUTS = globalThis.YSC_DEFAULT_SHORTCUTS || {};
+  const PRESET_ACTION_RATES = globalThis.YSC_PRESET_ACTION_RATES || {};
+  const ANALYTICS_RETENTION_DAYS = 90;
   const DEFAULT_ANALYTICS = {
     dailyDate: "",
     dailyUsageSeconds: 0,
     timeSavedSeconds: 0,
-    speedUsageSeconds: {}
+    speedUsageSeconds: {},
+    speedUsageByDate: {}
   };
+
+  if (!globalThis.YSC_DEFAULT_SHORTCUTS || !globalThis.YSC_PRESET_ACTION_RATES) {
+    console.error("[Video Speed Controller] Shared constants failed to load.");
+  }
 
   let preferredRate = 1;
   let extensionEnabled = true;
@@ -265,6 +251,14 @@
 
   const getTodayKey = () => new Date().toISOString().slice(0, 10);
 
+  const getRetentionCutoffKey = () => {
+    const cutoff = new Date();
+
+    cutoff.setDate(cutoff.getDate() - ANALYTICS_RETENTION_DAYS);
+
+    return cutoff.toISOString().slice(0, 10);
+  };
+
   const normalizeShortcut = (shortcut, fallback) => ({
     ...fallback,
     ...asPlainObject(shortcut),
@@ -285,16 +279,65 @@
   );
 
   const normalizeAnalytics = (storedAnalytics) => {
+    const todayKey = getTodayKey();
+    const cutoffKey = getRetentionCutoffKey();
+    const rawDailyUsage = asPlainObject(storedAnalytics?.speedUsageByDate);
+    const trimmedDailyUsage = {};
+
+    for (const [dateKey, usageBySpeed] of Object.entries(rawDailyUsage)) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey) || dateKey < cutoffKey) {
+        continue;
+      }
+
+      const cleanUsage = {};
+
+      for (const [rateLabel, seconds] of Object.entries(asPlainObject(usageBySpeed))) {
+        const numericSeconds = Number(seconds);
+
+        if (Number.isFinite(numericSeconds) && numericSeconds > 0) {
+          cleanUsage[rateLabel] = numericSeconds;
+        }
+      }
+
+      if (Object.keys(cleanUsage).length) {
+        trimmedDailyUsage[dateKey] = cleanUsage;
+      }
+    }
+
+    if (!Object.keys(trimmedDailyUsage).length) {
+      const legacyUsage = asPlainObject(storedAnalytics?.speedUsageSeconds);
+      const cleanLegacyUsage = {};
+
+      for (const [rateLabel, seconds] of Object.entries(legacyUsage)) {
+        const numericSeconds = Number(seconds);
+
+        if (Number.isFinite(numericSeconds) && numericSeconds > 0) {
+          cleanLegacyUsage[rateLabel] = numericSeconds;
+        }
+      }
+
+      if (Object.keys(cleanLegacyUsage).length) {
+        trimmedDailyUsage[todayKey] = cleanLegacyUsage;
+      }
+    }
+
+    const aggregateUsage = {};
+
+    for (const usageBySpeed of Object.values(trimmedDailyUsage)) {
+      for (const [rateLabel, seconds] of Object.entries(usageBySpeed)) {
+        aggregateUsage[rateLabel] = (aggregateUsage[rateLabel] || 0) + seconds;
+      }
+    }
+
     const nextAnalytics = {
       ...DEFAULT_ANALYTICS,
       ...asPlainObject(storedAnalytics),
-      speedUsageSeconds: {
-        ...asPlainObject(storedAnalytics?.speedUsageSeconds)
-      }
+      speedUsageSeconds: aggregateUsage,
+      speedUsageByDate: trimmedDailyUsage
     };
 
-    if (nextAnalytics.dailyDate !== getTodayKey()) {
-      nextAnalytics.dailyDate = getTodayKey();
+    if (nextAnalytics.dailyDate !== todayKey) {
+      nextAnalytics.dailyDate = todayKey;
       nextAnalytics.dailyUsageSeconds = 0;
     }
 
@@ -2173,16 +2216,26 @@
     if (analytics.dailyDate !== getTodayKey()) {
       analytics.dailyDate = getTodayKey();
       analytics.dailyUsageSeconds = 0;
+      analytics = normalizeAnalytics(analytics);
     }
 
     const rate = normalizePlaybackRate(video.playbackRate || preferredRate);
     const rateLabel = formatRate(rate);
+    const todayUsage = {
+      ...asPlainObject(analytics.speedUsageByDate?.[analytics.dailyDate])
+    };
+
+    todayUsage[rateLabel] = (todayUsage[rateLabel] || 0) + deltaSeconds;
 
     analytics.dailyUsageSeconds += deltaSeconds;
     analytics.timeSavedSeconds += Math.max(0, deltaSeconds * (rate - 1));
     analytics.speedUsageSeconds = {
       ...analytics.speedUsageSeconds,
       [rateLabel]: (analytics.speedUsageSeconds[rateLabel] || 0) + deltaSeconds
+    };
+    analytics.speedUsageByDate = {
+      ...analytics.speedUsageByDate,
+      [analytics.dailyDate]: todayUsage
     };
 
     sessionActiveSeconds += deltaSeconds;
@@ -2455,12 +2508,22 @@
       return true;
     }
 
+    if (message.type === "YSC_STORAGE_CHANGED") {
+      readStoredSettings()
+        .then((settings) => {
+          applyStoredSettings(settings);
+          refresh();
+          sendResponse({ ok: true, state: collectState() });
+        })
+        .catch((error) => {
+          console.error("[Video Speed Controller] Failed to refresh settings.", error);
+          sendResponse({ ok: false });
+        });
+      return true;
+    }
+
     return false;
   };
-
-  if (typeof chrome !== "undefined" && chrome.runtime?.onMessage) {
-    chrome.runtime.onMessage.addListener(handleRuntimeMessage);
-  }
 
   const scheduleRefresh = () => {
     if (mutationTimer) {
@@ -2511,9 +2574,7 @@
     });
   };
 
-  const start = async () => {
-    const settings = await readStoredSettings();
-
+  const applyStoredSettings = (settings) => {
     preferredRate = settings.rate;
     extensionEnabled = settings.enabled;
     widgetHidden = settings.widgetHidden;
@@ -2536,6 +2597,16 @@
     siteAccessMode = settings.siteAccessMode;
     siteAccessList = settings.siteAccessList;
     defaultNativeMode = settings.defaultNativeMode;
+  };
+
+  if (typeof chrome !== "undefined" && chrome.runtime?.onMessage) {
+    chrome.runtime.onMessage.addListener(handleRuntimeMessage);
+  }
+
+  const start = async () => {
+    const settings = await readStoredSettings();
+
+    applyStoredSettings(settings);
 
     observedShadowRoots = new WeakSet();
     rootObserver = new MutationObserver(scheduleRefresh);
@@ -2584,5 +2655,15 @@
     hookHistory();
   };
 
-  start();
+  try {
+    const startup = start();
+
+    if (startup && typeof startup.catch === "function") {
+      startup.catch((error) => {
+        console.error("[Video Speed Controller] Failed to start content script.", error);
+      });
+    }
+  } catch (error) {
+    console.error("[Video Speed Controller] Failed to start content script.", error);
+  }
 })();

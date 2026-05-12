@@ -9,6 +9,7 @@ const HOLD_REPEAT_MS = 90;
 
 const PRESETS = [0.25, 0.5, 1, 1.5, 2, 3, 5, 10];
 const STARTUP_SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5, 7.5, 10];
+const DEFAULT_SHORTCUTS = globalThis.YSC_DEFAULT_SHORTCUTS || {};
 const STORAGE_KEYS = {
   rate: "youtubeSpeedController.playbackRate",
   enabled: "youtubeSpeedController.enabled",
@@ -30,20 +31,9 @@ const STORAGE_KEYS = {
   siteAccessMode: "youtubeSpeedController.siteAccessMode",
   siteAccessList: "youtubeSpeedController.siteAccessList"
 };
-const DEFAULT_SHORTCUTS = {
-  increase: { label: "Shift + .", code: "Period", shift: true },
-  decrease: { label: "Shift + ,", code: "Comma", shift: true },
-  reset: { label: "Shift + Backspace", code: "Backspace", shift: true },
-  boost: { label: "X (hold)", code: "KeyX", hold: true },
-  widgetToggle: { label: "Shift + S", code: "KeyS", shift: true },
-  overlayToggle: { label: "Shift + H", code: "KeyH", shift: true },
-  preset1: { label: "Alt + 1", code: "Digit1", alt: true },
-  preset2: { label: "Alt + 2", code: "Digit2", alt: true },
-  preset3: { label: "Alt + 3", code: "Digit3", alt: true },
-  preset4: { label: "Alt + 4", code: "Digit4", alt: true },
-  preset5: { label: "Alt + 5", code: "Digit5", alt: true },
-  preset10: { label: "Alt + 0", code: "Digit0", alt: true }
-};
+if (!globalThis.YSC_DEFAULT_SHORTCUTS) {
+  console.error("[Video Speed Controller] Shared constants failed to load.");
+}
 const SETTING_DEFS = [
   ["widgetEnabled", "Floating widget", "Inline or floating controls"],
   ["keyboardEnabled", "Shortcuts", "Keyboard layer"],
@@ -382,7 +372,7 @@ const renderState = () => {
   els.duration.textContent = formatTime(duration);
   els.videoProgress.style.width = `${progress}%`;
   els.infoSpeed.textContent = formatRate(rate);
-  els.domainText.textContent = state?.tab?.domain || "—";
+  els.domainText.textContent = state?.tab?.domain || "-";
   els.timeSaved.textContent = formatDuration(state?.analytics?.timeSavedSeconds);
   els.mostUsed.textContent = state?.analytics?.mostUsedSpeed || formatRate(rate);
   els.dailyUsage.textContent = formatDuration(state?.analytics?.dailyUsageSeconds);
@@ -398,7 +388,7 @@ const renderState = () => {
   const tab = state?.tab || {};
 
   els.defaultNativeMode.value = state?.settings?.defaultNativeMode === "sync" ? "sync" : "override";
-  els.siteDomainLabel.textContent = live ? (tab.domain || "—") : "—";
+  els.siteDomainLabel.textContent = live ? (tab.domain || "-") : "-";
   els.sitePanelHint.textContent = live ? "Domain rules" : "Open a web tab";
   els.siteDisableToggle.checked = Boolean(tab.siteDisabled);
   els.siteDisableToggle.disabled = !live;
@@ -631,7 +621,24 @@ const init = async () => {
     await bootstrapFallbackState();
   }
 
+  startPolling();
+};
+
+const startPolling = () => {
+  if (pollTimer || document.hidden) {
+    return;
+  }
+
   pollTimer = setInterval(refreshState, 1000);
+};
+
+const stopPolling = () => {
+  if (!pollTimer) {
+    return;
+  }
+
+  clearInterval(pollTimer);
+  pollTimer = 0;
 };
 
 els.enabledToggle.addEventListener("change", (event) => updateSetting("enabled", event.target.checked));
@@ -689,7 +696,16 @@ document.addEventListener("keydown", (event) => {
   renderShortcuts();
   updateShortcuts();
 });
-window.addEventListener("unload", () => clearInterval(pollTimer));
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    stopPolling();
+    return;
+  }
+
+  refreshState();
+  startPolling();
+});
+window.addEventListener("unload", stopPolling);
 wireHoldButton(els.decreaseBtn, -1);
 wireHoldButton(els.increaseBtn, 1);
 init();

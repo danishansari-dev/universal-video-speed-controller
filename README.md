@@ -1,18 +1,18 @@
-# YouTube Speed Controller
+# Universal Video Speed Controller
 
-A modern Chrome extension for fast, precise YouTube playback speed control.
+A modern Chrome extension for fast, precise HTML5 video playback speed control.
 
-The extension adds a native-feeling floating speed widget beside YouTube's captions button and a polished toolbar popup for advanced controls, settings, shortcuts, live video status, and usage insights.
+The extension adds a native-feeling floating speed widget on video players and a polished toolbar popup for advanced controls, settings, shortcuts, live video status, and usage insights.
 
 ## Features
 
-- Floating `- / speed / +` widget inside YouTube's bottom-right player controls.
+- Floating `- / speed / +` widget on detected HTML5 video players.
 - Speed range from `0.25x` to `10x` in `0.25x` steps.
 - Single-click speed changes and press-and-hold acceleration on the widget buttons.
 - YouTube-style centered speed overlay whenever playback speed changes.
 - Modern toolbar popup with speed dial, presets, live video info, settings, shortcuts, and analytics.
-- Real-time sync with the active YouTube video when the popup is open.
-- Works with YouTube's single-page navigation and dynamically loaded players.
+- Real-time sync with the active video when the popup is open.
+- Works with dynamically loaded players and single-page navigation.
 - Avoids shortcut triggers while typing in search, comments, inputs, and editable fields.
 - Persists preferences with Chrome storage.
 
@@ -54,7 +54,7 @@ Shortcuts can be edited from the popup.
 
 ## Floating Widget
 
-The widget is inserted into YouTube's native player controls beside the captions button when available. If captions are not present, it falls back near the settings button.
+The widget appears as a lightweight floating control on detected video players. On YouTube, it still aims to blend with the player chrome.
 
 Controls:
 
@@ -72,19 +72,23 @@ The widget follows YouTube's hover/autohide behavior and can be hidden from the 
 3. Enable **Developer mode**.
 4. Click **Load unpacked**.
 5. Select this folder: `D:\Projects\youtube-speed-controller`.
-6. Open a YouTube video.
+6. Open a page with an HTML5 video.
 7. Hover over the video controls or click the extension icon in the toolbar.
 
 After making code changes, click **Reload** on the extension card in `chrome://extensions`.
 
 ## Project Files
 
-- `manifest.json` defines the Manifest V3 extension, permissions, popup, and YouTube content script.
+- `manifest.json` defines the Manifest V3 extension, permissions, popup, icons, service worker, and content scripts.
+- `background.js` seeds defaults on install/update and broadcasts storage changes to open tabs.
+- `constants.js` stores shared shortcut defaults used by the content script, popup, and service worker.
 - `content.js` injects the floating widget, manages playback speed, shortcuts, settings, popup messaging, and analytics.
 - `styles.css` styles the in-player widget and YouTube-style overlay.
 - `popup.html` defines the toolbar popup markup.
 - `popup.css` styles the modern popup UI.
-- `popup.js` syncs popup state with the active YouTube tab and persists settings.
+- `popup.js` syncs popup state with the active video tab and persists settings.
+- `assets/icons/` contains extension icons referenced by the manifest.
+- `assets/store/` contains promotional PNG assets for store listing preparation.
 
 ## Development Notes
 
@@ -95,11 +99,13 @@ Useful validation commands:
 ```powershell
 node --check content.js
 node --check popup.js
+node --check background.js
+node --check constants.js
 node -e "JSON.parse(require('fs').readFileSync('manifest.json','utf8')); console.log('manifest ok')"
 ```
 
 ## Current Limitations
 
-- The popup can only control playback when the active tab is a YouTube page with a detected video player.
+- The popup can only control playback when the active tab has a detected HTML5 video player.
 - Some very high playback speeds may depend on browser and YouTube player behavior.
 - Visual QA should be done by loading the unpacked extension in Chrome, since Chrome extension popups require the browser extension runtime.
