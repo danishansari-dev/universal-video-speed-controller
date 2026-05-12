@@ -136,8 +136,8 @@ const sendMessage = (message) => new Promise((resolve) => {
     return;
   }
 
-  // Target the main frame (frameId: 0) to avoid iframes responding first
-  chrome.tabs.sendMessage(activeTabId, message, { frameId: 0 }, (response) => {
+  // Send message to all frames so embedded videos (iframes) can respond
+  chrome.tabs.sendMessage(activeTabId, message, (response) => {
     if (chrome.runtime.lastError || !response?.ok) {
       resolve(null);
       return;
@@ -615,24 +615,7 @@ const init = async () => {
   activeTabId = (await getActiveTab())?.id || null;
   renderPresets();
 
-  // Retry a few times — content script may not have loaded yet on freshly-focused tabs
-  let nextState = null;
-  const MAX_RETRIES = 3;
-  const RETRY_DELAY_MS = 500;
-
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    nextState = await sendMessage({ type: "YSC_GET_STATE" });
-
-    if (nextState?.hasVideo) {
-      break;
-    }
-
-    // On first attempt, if we got a valid response but no video, wait and retry
-    // The content script may still be initializing or detecting the video
-    if (attempt < MAX_RETRIES) {
-      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
-    }
-  }
+  const nextState = await sendMessage({ type: "YSC_GET_STATE" });
 
   if (nextState) {
     state = nextState;
@@ -643,6 +626,24 @@ const init = async () => {
   }
 
   startPolling();
+
+  // Retry looking for a video in the background without blocking the UI
+  if (!state?.hasVideo) {
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY_MS = 500;
+
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+      const retryState = await sendMessage({ type: "YSC_GET_STATE" });
+
+      if (retryState?.hasVideo) {
+        state = retryState;
+        shortcuts = state.shortcuts || {};
+        renderState();
+        break;
+      }
+    }
+  }
 };
 
 const startPolling = () => {
