@@ -1,19 +1,25 @@
 {
   "manifest_version": 3,
-  "name": "YouTube Speed Controller",
-  "description": "Adds native-feeling playback speed controls beside YouTube's captions button.",
-  "version": "0.1.0",
+  "name": "Universal Video Speed Controller",
+  "description": "Playback speed controls for HTML5 video on any website — shortcuts, floating widget, popup, and per-site memory.",
+  "version": "0.2.0",
   "action": {
-    "default_title": "YouTube Speed Controller"
+    "default_title": "Video Speed Controller",
+    "default_popup": "popup.html"
   },
   "permissions": [
+    "activeTab",
     "storage"
   ],
   "content_scripts": [
     {
       "matches": [
-        "https://youtube.com/*",
-        "https://*.youtube.com/*"
+        "http://*/*",
+        "https://*/*"
+      ],
+      "exclude_matches": [
+        "https://chrome.google.com/webstore/*",
+        "https://chromewebstore.google.com/*"
       ],
       "js": [
         "content.js"
@@ -21,7 +27,8 @@
       "css": [
         "styles.css"
       ],
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "all_frames": false
     }
   ]
 }
