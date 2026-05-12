@@ -210,6 +210,26 @@ body > .ysc-speed-toast-visible {
   transform: translateY(0) scale(1.06);
 }
 
+.ysc-speed-widget.ysc-speed-widget--floating.ysc-speed-widget--yt-preview {
+  border-radius: 8px;
+  gap: 0;
+  padding: 1px 3px;
+  transform: translateY(5px) scale(0.88);
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease,
+    visibility 0s linear 0.16s;
+}
+
+.ysc-speed-widget.ysc-speed-widget--floating.ysc-speed-widget--ambient.ysc-speed-widget--yt-preview {
+  opacity: .85;
+  transform: translateY(0) scale(0.88);
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease,
+    visibility 0s linear 0s;
+}
+
 .ysc-speed-widget.ysc-speed-widget--floating.ysc-speed-widget-hidden {
   display: none !important;
 }
@@ -231,6 +251,16 @@ body > .ysc-speed-toast-visible {
 
 .ysc-speed-widget.ysc-speed-widget--floating.ysc-speed-widget--vertical[data-ysc-theme="dark"] {
   background: rgba(14, 14, 18, .62);
+}
+
+.ysc-speed-widget.ysc-speed-widget--floating.ysc-speed-widget--yt-preview[data-ysc-theme="dark"] {
+  background: rgba(12, 12, 16, .5);
+  border-color: rgba(255, 255, 255, .09);
+}
+
+.ysc-speed-widget.ysc-speed-widget--floating.ysc-speed-widget--yt-preview[data-ysc-theme="light"] {
+  background: rgba(255, 255, 255, .54);
+  border-color: rgba(0, 0, 0, .06);
 }
 
 .ysc-speed-widget.ysc-speed-widget--floating .ysc-speed-button {
@@ -310,6 +340,27 @@ body > .ysc-speed-toast-visible {
 .ysc-speed-widget.ysc-speed-widget--floating.ysc-speed-widget--ambient.ysc-speed-widget--fs .ysc-speed-icon {
   height: 15px;
   width: 15px;
+}
+
+.ysc-speed-widget.ysc-speed-widget--floating.ysc-speed-widget--yt-preview .ysc-speed-button {
+  border-radius: 8px;
+  font-size: 10px;
+  height: 25px;
+  min-width: 24px;
+  padding: 0 2px;
+}
+
+.ysc-speed-widget.ysc-speed-widget--floating.ysc-speed-widget--yt-preview .ysc-speed-rate {
+  border-radius: 8px;
+  font-size: 10px;
+  height: 23px;
+  min-width: 34px;
+  padding: 0 5px;
+}
+
+.ysc-speed-widget.ysc-speed-widget--floating.ysc-speed-widget--yt-preview .ysc-speed-icon {
+  height: 12px;
+  width: 12px;
 }
 
 .ysc-speed-toast[data-ysc-theme="light"] {
