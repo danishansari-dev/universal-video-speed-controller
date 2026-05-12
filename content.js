@@ -1555,18 +1555,27 @@
     }
 
     const youtubePreviewLayout = isYouTubeCompactPreview(video, rect, fullscreenUi);
-    const verticalLayout = !youtubePreviewLayout && rect.height / rect.width >= 1.18;
 
-    widget.classList.toggle("ysc-speed-widget--yt-preview", youtubePreviewLayout);
+    if (youtubePreviewLayout) {
+      widget.style.display = "none";
+      resetFloatingHoverState();
+      return;
+    } else {
+      widget.style.display = "";
+    }
+
+    const verticalLayout = rect.height / rect.width >= 1.18;
+
+    widget.classList.remove("ysc-speed-widget--yt-preview");
     widget.classList.toggle("ysc-speed-widget--vertical", verticalLayout);
 
     const now = performance.now();
     const runHeavy = now - lastFloatingLayoutAt >= FLOATING_LAYOUT_MIN_MS;
     const srcTag = String(video.currentSrc || video.src || "").slice(-48);
-    const obsKey = `${youtubePreviewLayout ? "yt-preview" : "standard"}_${srcTag}_${Math.round(rect.left)}_${Math.round(rect.top)}_${Math.round(rect.width)}_${Math.round(rect.height)}`;
+    const obsKey = `standard_${srcTag}_${Math.round(rect.left)}_${Math.round(rect.top)}_${Math.round(rect.width)}_${Math.round(rect.height)}`;
 
     if (runHeavy || cachedObstacleKey !== obsKey) {
-      cachedObstacleRects = gatherObstacleRects(video, rect, { compactPreview: youtubePreviewLayout });
+      cachedObstacleRects = gatherObstacleRects(video, rect, { compactPreview: false });
       cachedObstacleKey = obsKey;
     }
 
@@ -1576,9 +1585,7 @@
 
     const ww = widget.offsetWidth || FLOATING_WIDGET_FALLBACK_W;
     const wh = widget.offsetHeight || FLOATING_WIDGET_FALLBACK_H;
-    const pos = youtubePreviewLayout
-      ? pickYouTubePreviewPosition(video, rect, ww, wh, cachedObstacleRects)
-      : pickBestFloatingPosition(
+    const pos = pickBestFloatingPosition(
         video,
         rect,
         ww,
