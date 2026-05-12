@@ -1418,7 +1418,10 @@
     const topBandLimit = vr.top + Math.min(140, vr.height * 0.6);
     const rightControlThreshold = Math.max(vr.left + vr.width * 0.25, rightBandLeft - 24);
     
-    let topControlBottom = minTop;
+    // YouTube previews almost always have top-right controls (CC, Mute, Watch Later)
+    // that might be hidden via opacity until hover. Hardcode a safe top margin 
+    // to strictly guarantee we never occupy their horizontal row.
+    let topControlBottom = minTop + Math.max(38, Math.min(62, vr.height * 0.3));
 
     // Detect native YouTube controls at the top right and set topControlBottom below them
     for (const ob of list) {
@@ -1435,9 +1438,9 @@
     // Candidate spots: below top controls, at the bottom right, or shifted left
     const candidateTops = [
       desiredTop,
-      Math.min(desiredTop + wh + pad, maxTop), // further down
-      maxTop, // Bottom right safe zone
-      minTop // Only if no top controls are found
+      Math.min(desiredTop + wh + pad + 12, maxTop), // significantly further down
+      maxTop // Bottom right safe zone
+
     ];
     
     const candidateLefts = [
