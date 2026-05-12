@@ -12,7 +12,26 @@
   const STORAGE_KEYS = {
     rate: "youtubeSpeedController.playbackRate",
     widgetHidden: "youtubeSpeedController.widgetHidden",
-    toastHidden: "youtubeSpeedController.toastHidden"
+    toastHidden: "youtubeSpeedController.toastHidden",
+    enabled: "youtubeSpeedController.enabled",
+    keyboardEnabled: "youtubeSpeedController.keyboardEnabled",
+    mouseWheelEnabled: "youtubeSpeedController.mouseWheelEnabled",
+    boostEnabled: "youtubeSpeedController.boostEnabled",
+    rememberPerChannel: "youtubeSpeedController.rememberPerChannel",
+    rememberGlobally: "youtubeSpeedController.rememberGlobally",
+    rememberPerSite: "youtubeSpeedController.rememberPerSite",
+    autoApplyPreferredSpeed: "youtubeSpeedController.autoApplyPreferredSpeed",
+    compactMode: "youtubeSpeedController.compactMode",
+    fullscreenOnlyControls: "youtubeSpeedController.fullscreenOnlyControls",
+    themeMode: "youtubeSpeedController.themeMode",
+    startupDefaultSpeed: "youtubeSpeedController.startupDefaultSpeed",
+    shortcuts: "youtubeSpeedController.shortcuts",
+    channelRates: "youtubeSpeedController.channelRates",
+    analytics: "youtubeSpeedController.analytics",
+    sitePolicies: "youtubeSpeedController.sitePolicies",
+    siteAccessMode: "youtubeSpeedController.siteAccessMode",
+    siteAccessList: "youtubeSpeedController.siteAccessList",
+    defaultNativeMode: "youtubeSpeedController.defaultNativeMode"
   };
 
   const EPSILON = 0.01;
@@ -22,29 +41,79 @@
   const BOOST_RATE = 2;
   const TOAST_TIMEOUT_MS = 900;
   const WHEEL_THROTTLE_MS = 120;
+  const HOLD_START_DELAY_MS = 260;
+  const HOLD_REPEAT_MS = 85;
+  const SUPPRESS_CLICK_AFTER_HOLD_MS = 500;
+  const MAX_VIDEO_SCAN = 140;
+  const FLOATING_HIDE_DELAY_MS = 520;
+  const FLOATING_HOVER_EXPAND_PX = 12;
+  const FLOATING_BOTTOM_CHROME_PAD = 100;
+  const FLOATING_LAYOUT_MIN_MS = 100;
+  const FLOATING_WIDGET_FALLBACK_W = 118;
+  const FLOATING_WIDGET_FALLBACK_H = 36;
+  const FLOATING_EDGE_MARGIN = 10;
+  const FLOATING_COLLISION_PAD = 8;
   const SPEEDS = Array.from(
     { length: Math.round((MAX_PLAYBACK_RATE - MIN_PLAYBACK_RATE) / SPEED_STEP) + 1 },
     (_, index) => Number((MIN_PLAYBACK_RATE + (index * SPEED_STEP)).toFixed(2))
   );
-  const PRESET_RATES = {
-    Digit1: 1,
-    Digit2: 2,
-    Digit3: 3,
-    Digit4: 4,
-    Digit5: 5,
-    Digit0: 10,
-    Numpad1: 1,
-    Numpad2: 2,
-    Numpad3: 3,
-    Numpad4: 4,
-    Numpad5: 5,
-    Numpad0: 10
+  const DEFAULT_SHORTCUTS = {
+    increase: { label: "Shift + .", code: "Period", shift: true },
+    decrease: { label: "Shift + ,", code: "Comma", shift: true },
+    reset: { label: "Shift + Backspace", code: "Backspace", shift: true },
+    boost: { label: "X (hold)", code: "KeyX", hold: true },
+    widgetToggle: { label: "Shift + S", code: "KeyS", shift: true },
+    overlayToggle: { label: "Shift + H", code: "KeyH", shift: true },
+    preset1: { label: "Alt + 1", code: "Digit1", alt: true },
+    preset2: { label: "Alt + 2", code: "Digit2", alt: true },
+    preset3: { label: "Alt + 3", code: "Digit3", alt: true },
+    preset4: { label: "Alt + 4", code: "Digit4", alt: true },
+    preset5: { label: "Alt + 5", code: "Digit5", alt: true },
+    preset10: { label: "Alt + 0", code: "Digit0", alt: true }
+  };
+  const PRESET_ACTION_RATES = {
+    preset1: 1,
+    preset2: 2,
+    preset3: 3,
+    preset4: 4,
+    preset5: 5,
+    preset10: 10
+  };
+  const DEFAULT_ANALYTICS = {
+    dailyDate: "",
+    dailyUsageSeconds: 0,
+    timeSavedSeconds: 0,
+    speedUsageSeconds: {}
   };
 
   let preferredRate = 1;
+  let extensionEnabled = true;
   let widgetHidden = false;
   let toastHidden = false;
+  let keyboardEnabled = true;
+  let mouseWheelEnabled = true;
+  let boostEnabled = true;
+  let rememberPerChannel = false;
+  let rememberGlobally = true;
+  let rememberPerSite = true;
+  let autoApplyPreferredSpeed = true;
+  let compactMode = false;
+  let fullscreenOnlyControls = false;
+  let themeMode = "auto";
+  let startupDefaultSpeed = 1;
+  let shortcuts = { ...DEFAULT_SHORTCUTS };
+  let channelRates = {};
+  let analytics = { ...DEFAULT_ANALYTICS };
+  let sitePolicies = {};
+  let siteAccessMode = "all";
+  let siteAccessList = [];
+  let defaultNativeMode = "override";
+  let analyticsLastAt = 0;
+  let analyticsLastSaveAt = 0;
+  let sessionRateWeightedSeconds = 0;
+  let sessionActiveSeconds = 0;
   let widget = null;
+  let widgetPlacement = "floating";
   let toast = null;
   let toastLabelText = null;
   let toastValueText = null;
@@ -57,6 +126,26 @@
   let lastWheelAt = 0;
   let isBoosting = false;
   let boostRestoreRate = null;
+  let holdDelayTimer = 0;
+  let holdIntervalTimer = 0;
+  let holdDirection = 0;
+  let holdButton = null;
+  let holdActivated = false;
+  let suppressedClickButton = null;
+  let suppressedClickTimer = 0;
+  const videoRegistry = new Set();
+  let lastPointerVideo = null;
+  let lastPointerClientX = 0;
+  let lastPointerClientY = 0;
+  let pointerMoveTimer = 0;
+  let floatingHideTimer = 0;
+  let floatingHoverActive = false;
+  let lastFloatingLayoutAt = 0;
+  let cachedObstacleRects = [];
+  let cachedObstacleKey = "";
+  let themeSampleTimer = 0;
+  let observedShadowRoots = new WeakSet();
+  let rootObserver = null;
 
   const getChromeStorage = () => {
     if (typeof chrome === "undefined" || !chrome.storage?.local) {
@@ -65,6 +154,96 @@
 
     return chrome.storage.local;
   };
+
+  const getHostname = () => (typeof location !== "undefined" ? location.hostname : "");
+
+  const normalizeHost = (host) => String(host || "").trim().toLowerCase();
+
+  const isYouTubeHost = () => {
+    const host = getHostname();
+
+    return host === "youtube.com" || host.endsWith(".youtube.com");
+  };
+
+  const asPlainObject = (value) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      return {};
+    }
+
+    return value;
+  };
+
+  const normalizeSitePolicies = (raw) => {
+    const next = {};
+    const source = asPlainObject(raw);
+
+    for (const [host, policy] of Object.entries(source)) {
+      const key = normalizeHost(host);
+
+      if (!key) {
+        continue;
+      }
+
+      const plain = asPlainObject(policy);
+
+      next[key] = {
+        disabled: plain.disabled === true,
+        preferredRate: Number.isFinite(Number(plain.preferredRate))
+          ? normalizePlaybackRate(plain.preferredRate)
+          : null,
+        nativeMode: ["override", "sync"].includes(plain.nativeMode)
+          ? plain.nativeMode
+          : null
+      };
+    }
+
+    return next;
+  };
+
+  const normalizeAccessList = (raw) => {
+    if (!Array.isArray(raw)) {
+      return [];
+    }
+
+    return raw.map(normalizeHost).filter(Boolean);
+  };
+
+  const getSitePolicy = () => sitePolicies[normalizeHost(getHostname())] || {};
+
+  const getEffectiveNativeMode = () => {
+    const policyMode = getSitePolicy().nativeMode;
+
+    if (policyMode === "override" || policyMode === "sync") {
+      return policyMode;
+    }
+
+    return defaultNativeMode === "sync" ? "sync" : "override";
+  };
+
+  const passesSiteAccessGate = () => {
+    const host = normalizeHost(getHostname());
+    const list = siteAccessList.map(normalizeHost).filter(Boolean);
+
+    if (siteAccessMode === "whitelist") {
+      return list.includes(host);
+    }
+
+    if (siteAccessMode === "blacklist") {
+      return !list.includes(host);
+    }
+
+    return true;
+  };
+
+  const isSiteDisabled = () => {
+    if (!passesSiteAccessGate()) {
+      return true;
+    }
+
+    return getSitePolicy().disabled === true;
+  };
+
+  const isExtensionControllingPage = () => extensionEnabled && !isSiteDisabled();
 
   const roundToStep = (rate) => Number((Math.round(rate / SPEED_STEP) * SPEED_STEP).toFixed(2));
 
@@ -84,14 +263,74 @@
     return `${String(normalized).replace(/\.?0+$/, "")}x`;
   };
 
+  const getTodayKey = () => new Date().toISOString().slice(0, 10);
+
+  const normalizeShortcut = (shortcut, fallback) => ({
+    ...fallback,
+    ...asPlainObject(shortcut),
+    label: String(shortcut?.label || fallback.label),
+    code: String(shortcut?.code || fallback.code),
+    shift: Boolean(shortcut?.shift ?? fallback.shift),
+    ctrl: Boolean(shortcut?.ctrl ?? fallback.ctrl),
+    alt: Boolean(shortcut?.alt ?? fallback.alt),
+    meta: Boolean(shortcut?.meta ?? fallback.meta),
+    hold: Boolean(shortcut?.hold ?? fallback.hold)
+  });
+
+  const normalizeShortcuts = (storedShortcuts) => Object.fromEntries(
+    Object.entries(DEFAULT_SHORTCUTS).map(([action, fallback]) => [
+      action,
+      normalizeShortcut(asPlainObject(storedShortcuts)[action], fallback)
+    ])
+  );
+
+  const normalizeAnalytics = (storedAnalytics) => {
+    const nextAnalytics = {
+      ...DEFAULT_ANALYTICS,
+      ...asPlainObject(storedAnalytics),
+      speedUsageSeconds: {
+        ...asPlainObject(storedAnalytics?.speedUsageSeconds)
+      }
+    };
+
+    if (nextAnalytics.dailyDate !== getTodayKey()) {
+      nextAnalytics.dailyDate = getTodayKey();
+      nextAnalytics.dailyUsageSeconds = 0;
+    }
+
+    nextAnalytics.dailyUsageSeconds = Number(nextAnalytics.dailyUsageSeconds) || 0;
+    nextAnalytics.timeSavedSeconds = Number(nextAnalytics.timeSavedSeconds) || 0;
+
+    return nextAnalytics;
+  };
+
   const readStoredSettings = () => new Promise((resolve) => {
     const storage = getChromeStorage();
 
     if (!storage) {
       resolve({
         rate: 1,
+        enabled: true,
         widgetHidden: false,
-        toastHidden: false
+        toastHidden: false,
+        keyboardEnabled: true,
+        mouseWheelEnabled: true,
+        boostEnabled: true,
+        rememberPerChannel: false,
+        rememberGlobally: true,
+        rememberPerSite: true,
+        autoApplyPreferredSpeed: true,
+        compactMode: false,
+        fullscreenOnlyControls: false,
+        themeMode: "auto",
+        startupDefaultSpeed: 1,
+        shortcuts: normalizeShortcuts({}),
+        channelRates: {},
+        analytics: normalizeAnalytics({}),
+        sitePolicies: {},
+        siteAccessMode: "all",
+        siteAccessList: [],
+        defaultNativeMode: "override"
       });
       return;
     }
@@ -100,16 +339,61 @@
       if (chrome.runtime?.lastError) {
         resolve({
           rate: 1,
+          enabled: true,
           widgetHidden: false,
-          toastHidden: false
+          toastHidden: false,
+          keyboardEnabled: true,
+          mouseWheelEnabled: true,
+          boostEnabled: true,
+          rememberPerChannel: false,
+          rememberGlobally: true,
+          rememberPerSite: true,
+          autoApplyPreferredSpeed: true,
+          compactMode: false,
+          fullscreenOnlyControls: false,
+          themeMode: "auto",
+          startupDefaultSpeed: 1,
+          shortcuts: normalizeShortcuts({}),
+          channelRates: {},
+          analytics: normalizeAnalytics({}),
+          sitePolicies: {},
+          siteAccessMode: "all",
+          siteAccessList: [],
+          defaultNativeMode: "override"
         });
         return;
       }
 
       resolve({
         rate: normalizePlaybackRate(result[STORAGE_KEYS.rate]),
+        enabled: result[STORAGE_KEYS.enabled] !== false,
         widgetHidden: result[STORAGE_KEYS.widgetHidden] === true,
         toastHidden: result[STORAGE_KEYS.toastHidden] === true
+          || result[STORAGE_KEYS.toastHidden] === "true",
+        keyboardEnabled: result[STORAGE_KEYS.keyboardEnabled] !== false,
+        mouseWheelEnabled: result[STORAGE_KEYS.mouseWheelEnabled] !== false,
+        boostEnabled: result[STORAGE_KEYS.boostEnabled] !== false,
+        rememberPerChannel: result[STORAGE_KEYS.rememberPerChannel] === true,
+        rememberGlobally: result[STORAGE_KEYS.rememberGlobally] !== false,
+        rememberPerSite: result[STORAGE_KEYS.rememberPerSite] !== false,
+        autoApplyPreferredSpeed: result[STORAGE_KEYS.autoApplyPreferredSpeed] !== false,
+        compactMode: result[STORAGE_KEYS.compactMode] === true,
+        fullscreenOnlyControls: result[STORAGE_KEYS.fullscreenOnlyControls] === true,
+        themeMode: ["auto", "dark", "light"].includes(result[STORAGE_KEYS.themeMode])
+          ? result[STORAGE_KEYS.themeMode]
+          : "auto",
+        startupDefaultSpeed: normalizePlaybackRate(result[STORAGE_KEYS.startupDefaultSpeed] || 1),
+        shortcuts: normalizeShortcuts(result[STORAGE_KEYS.shortcuts]),
+        channelRates: asPlainObject(result[STORAGE_KEYS.channelRates]),
+        analytics: normalizeAnalytics(result[STORAGE_KEYS.analytics]),
+        sitePolicies: normalizeSitePolicies(result[STORAGE_KEYS.sitePolicies]),
+        siteAccessMode: ["all", "whitelist", "blacklist"].includes(result[STORAGE_KEYS.siteAccessMode])
+          ? result[STORAGE_KEYS.siteAccessMode]
+          : "all",
+        siteAccessList: normalizeAccessList(result[STORAGE_KEYS.siteAccessList]),
+        defaultNativeMode: ["override", "sync"].includes(result[STORAGE_KEYS.defaultNativeMode])
+          ? result[STORAGE_KEYS.defaultNativeMode]
+          : "override"
       });
     });
   });
@@ -124,14 +408,353 @@
     storage.set({ [key]: value });
   };
 
+  const persistSitePolicies = () => {
+    saveSetting(STORAGE_KEYS.sitePolicies, sitePolicies);
+  };
+
+  const updateSitePolicy = (partial) => {
+    const host = normalizeHost(getHostname());
+
+    if (!host) {
+      return;
+    }
+
+    const current = asPlainObject(sitePolicies[host]);
+    const next = { ...current, ...partial };
+    const empty = !next.disabled
+      && next.preferredRate == null
+      && (next.nativeMode == null || next.nativeMode === "");
+
+    if (empty) {
+      delete sitePolicies[host];
+    } else {
+      sitePolicies = { ...sitePolicies, [host]: next };
+    }
+
+    persistSitePolicies();
+  };
+
+  const getChannelKey = () => {
+    const channelLink = document.querySelector("ytd-watch-metadata ytd-channel-name a")
+      || document.querySelector("#upload-info #channel-name a")
+      || document.querySelector("ytd-video-owner-renderer a[href^='/@']")
+      || document.querySelector("ytd-video-owner-renderer a[href^='/channel/']");
+
+    const channelPath = channelLink?.getAttribute("href");
+
+    if (channelPath) {
+      return channelPath;
+    }
+
+    const channelName = channelLink?.textContent?.trim();
+
+    return channelName || "";
+  };
+
   const savePreferredRate = (rate) => {
     window.clearTimeout(saveTimer);
     saveTimer = window.setTimeout(() => {
-      saveSetting(STORAGE_KEYS.rate, normalizePlaybackRate(rate));
+      const normalizedRate = normalizePlaybackRate(rate);
+      const nextStorage = {};
+      const host = normalizeHost(getHostname());
+
+      if (rememberGlobally) {
+        nextStorage[STORAGE_KEYS.rate] = normalizedRate;
+      }
+
+      if (rememberPerChannel && isYouTubeHost()) {
+        const channelKey = getChannelKey();
+
+        if (channelKey) {
+          channelRates = {
+            ...channelRates,
+            [channelKey]: normalizedRate
+          };
+          nextStorage[STORAGE_KEYS.channelRates] = channelRates;
+        }
+      }
+
+      if (rememberPerSite && host) {
+        const policy = asPlainObject(sitePolicies[host]);
+
+        sitePolicies = {
+          ...sitePolicies,
+          [host]: {
+            ...policy,
+            preferredRate: normalizedRate
+          }
+        };
+        nextStorage[STORAGE_KEYS.sitePolicies] = sitePolicies;
+      }
+
+      const storage = getChromeStorage();
+
+      if (storage && Object.keys(nextStorage).length) {
+        storage.set(nextStorage);
+      }
     }, 100);
   };
 
+  const collectVideosFromRoot = (root, bucket) => {
+    if (!root || !root.querySelectorAll) {
+      return;
+    }
+
+    root.querySelectorAll("video").forEach((video) => {
+      bucket.add(video);
+    });
+
+    root.querySelectorAll("*").forEach((element) => {
+      if (element.shadowRoot && !observedShadowRoots.has(element.shadowRoot)) {
+        observedShadowRoots.add(element.shadowRoot);
+        rootObserver?.observe(element.shadowRoot, { childList: true, subtree: true });
+        collectVideosFromRoot(element.shadowRoot, bucket);
+      }
+    });
+  };
+
+  const syncVideoRegistry = () => {
+    const next = new Set();
+
+    collectVideosFromRoot(document, next);
+
+    for (const video of videoRegistry) {
+      if (video.isConnected) {
+        next.add(video);
+      }
+    }
+
+    videoRegistry.clear();
+    let count = 0;
+
+    for (const video of next) {
+      if (count >= MAX_VIDEO_SCAN) {
+        break;
+      }
+
+      if (video.isConnected) {
+        videoRegistry.add(video);
+        count += 1;
+      }
+    }
+  };
+
+  const isVideoUsable = (video) => {
+    if (!(video instanceof HTMLVideoElement) || !video.isConnected) {
+      return false;
+    }
+
+    const rect = video.getBoundingClientRect();
+
+    if (rect.width < 32 || rect.height < 32) {
+      return false;
+    }
+
+    const style = window.getComputedStyle(video);
+
+    if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0) {
+      return false;
+    }
+
+    return true;
+  };
+
+  const videoVisibleScore = (video) => {
+    const rect = video.getBoundingClientRect();
+    const vw = window.innerWidth || 0;
+    const vh = window.innerHeight || 0;
+    const ix = Math.max(0, Math.min(rect.right, vw) - Math.max(rect.left, 0));
+    const iy = Math.max(0, Math.min(rect.bottom, vh) - Math.max(rect.top, 0));
+
+    return ix * iy;
+  };
+
+  const pickLargestVideo = (videos) => {
+    let best = null;
+    let bestScore = 0;
+
+    for (const video of videos) {
+      const score = videoVisibleScore(video);
+
+      if (score > bestScore) {
+        bestScore = score;
+        best = video;
+      }
+    }
+
+    return best;
+  };
+
+  const pointInRect = (clientX, clientY, rect) => {
+    if (!rect || !Number.isFinite(clientX) || !Number.isFinite(clientY)) {
+      return false;
+    }
+
+    return clientX >= rect.left
+      && clientX <= rect.right
+      && clientY >= rect.top
+      && clientY <= rect.bottom;
+  };
+
+  const isBottomOverlayStackOpen = (video, videoRect) => {
+    if (!video || !videoRect?.width) {
+      return true;
+    }
+
+    const sampleY = videoRect.bottom - Math.max(8, Math.min(40, videoRect.height * 0.09));
+    const xs = [
+      videoRect.left + videoRect.width * 0.18,
+      videoRect.left + videoRect.width * 0.5,
+      videoRect.right - videoRect.width * 0.18
+    ];
+
+    for (const x of xs) {
+      const stack = document.elementsFromPoint(x, sampleY);
+
+      for (const el of stack.slice(0, 16)) {
+        if (!(el instanceof Element)) {
+          continue;
+        }
+
+        if (widget && widget.contains(el)) {
+          return true;
+        }
+
+        if (el === video || video.contains(el)) {
+          continue;
+        }
+
+        const style = window.getComputedStyle(el);
+
+        if (style.pointerEvents === "none") {
+          continue;
+        }
+
+        if (style.visibility === "hidden" || style.display === "none") {
+          continue;
+        }
+
+        const opacity = parseFloat(style.opacity);
+
+        if (Number.isFinite(opacity) && opacity < 0.04) {
+          continue;
+        }
+
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  const shouldRevealFloatingWidget = (clientX, clientY) => {
+    if (!widget || widgetPlacement !== "floating") {
+      return false;
+    }
+
+    const video = getVideo();
+
+    if (!video || !isVideoUsable(video)) {
+      return false;
+    }
+
+    const vr = video.getBoundingClientRect();
+    const bottomPad = Math.min(
+      FLOATING_BOTTOM_CHROME_PAD,
+      Math.max(64, vr.height * 0.26)
+    );
+
+    const hoverZone = {
+      left: vr.left - FLOATING_HOVER_EXPAND_PX,
+      top: vr.top - FLOATING_HOVER_EXPAND_PX,
+      right: vr.right + FLOATING_HOVER_EXPAND_PX,
+      bottom: vr.bottom + bottomPad
+    };
+
+    const wr = widget.getBoundingClientRect();
+
+    if (wr.width > 0 && wr.height > 0 && pointInRect(clientX, clientY, wr)) {
+      return true;
+    }
+
+    const inVideoRect = pointInRect(clientX, clientY, vr);
+    const inHoverZone = pointInRect(clientX, clientY, hoverZone);
+    const chromeOpen = isBottomOverlayStackOpen(video, vr);
+
+    return inVideoRect || (chromeOpen && inHoverZone);
+  };
+
+  const clearFloatingHideTimer = () => {
+    window.clearTimeout(floatingHideTimer);
+    floatingHideTimer = 0;
+  };
+
+  const applyFloatingAmbientClass = () => {
+    if (!widget || widgetPlacement !== "floating") {
+      return;
+    }
+
+    const hideForFullscreen = fullscreenOnlyControls && !isFullscreenMode();
+    const blocked = !isExtensionControllingPage() || widgetHidden || hideForFullscreen;
+
+    if (blocked) {
+      widget.classList.remove("ysc-speed-widget--ambient");
+      return;
+    }
+
+    widget.classList.toggle("ysc-speed-widget--ambient", floatingHoverActive);
+  };
+
+  const scheduleFloatingHide = () => {
+    clearFloatingHideTimer();
+    floatingHideTimer = window.setTimeout(() => {
+      floatingHideTimer = 0;
+      floatingHoverActive = false;
+      applyFloatingAmbientClass();
+    }, FLOATING_HIDE_DELAY_MS);
+  };
+
+  const resetFloatingHoverState = () => {
+    clearFloatingHideTimer();
+    floatingHoverActive = false;
+
+    if (widget) {
+      widget.classList.remove("ysc-speed-widget--ambient");
+    }
+  };
+
+  const updateFloatingHoverFromClientPoint = (clientX, clientY) => {
+    if (widgetPlacement !== "floating") {
+      return;
+    }
+
+    const hideForFullscreen = fullscreenOnlyControls && !isFullscreenMode();
+    const blocked = !isExtensionControllingPage() || widgetHidden || hideForFullscreen;
+
+    if (blocked) {
+      resetFloatingHoverState();
+      return;
+    }
+
+    const reveal = shouldRevealFloatingWidget(clientX, clientY);
+
+    if (reveal) {
+      clearFloatingHideTimer();
+
+      if (!floatingHoverActive) {
+        floatingHoverActive = true;
+        applyFloatingAmbientClass();
+      }
+    } else if (floatingHoverActive && !floatingHideTimer) {
+      scheduleFloatingHide();
+    }
+  };
+
   const getPlayer = () => {
+    if (!isYouTubeHost()) {
+      return null;
+    }
+
     const players = Array.from(document.querySelectorAll(".html5-video-player"));
 
     return players.find((player) => {
@@ -142,18 +765,498 @@
     }) || null;
   };
 
-  const getVideo = () => {
+  const getYouTubeVideo = () => {
     const player = getPlayer();
 
     return player?.querySelector("video.html5-main-video, video") || null;
   };
 
+  const pickUniversalVideo = () => {
+    syncVideoRegistry();
+
+    const pip = document.pictureInPictureElement;
+
+    if (pip instanceof HTMLVideoElement && isVideoUsable(pip)) {
+      return pip;
+    }
+
+    const fs = document.fullscreenElement;
+
+    if (fs instanceof HTMLVideoElement && isVideoUsable(fs)) {
+      return fs;
+    }
+
+    if (fs?.querySelector) {
+      const nested = fs.querySelector("video");
+
+      if (nested && isVideoUsable(nested)) {
+        return nested;
+      }
+    }
+
+    if (lastPointerVideo && isVideoUsable(lastPointerVideo)) {
+      return lastPointerVideo;
+    }
+
+    const active = document.activeElement;
+
+    if (active instanceof HTMLVideoElement && isVideoUsable(active)) {
+      return active;
+    }
+
+    const candidates = Array.from(videoRegistry).filter(isVideoUsable);
+    const playing = candidates.filter((video) => !video.paused && !video.ended && video.readyState > 1);
+
+    if (playing.length) {
+      return pickLargestVideo(playing);
+    }
+
+    return pickLargestVideo(candidates);
+  };
+
+  const getVideo = () => {
+    if (isYouTubeHost()) {
+      const yt = getYouTubeVideo();
+
+      if (yt) {
+        return yt;
+      }
+    }
+
+    return pickUniversalVideo();
+  };
+
   const hasActiveVideoPlayer = () => {
-    const player = getPlayer();
-    const video = player?.querySelector("video.html5-main-video, video");
+    const video = getVideo();
+
+    return Boolean(video && isVideoUsable(video));
+  };
+
+  const detectNativeSpeedHeuristic = (video) => {
+    if (!(video instanceof HTMLVideoElement)) {
+      return false;
+    }
+
+    const root = video.closest(
+      [
+        "[class*='playback-rate' i]",
+        "[class*='playbackRate' i]",
+        "[data-testid*='playback' i]",
+        "[aria-label*='playback speed' i]",
+        "[aria-label*='speed' i]"
+      ].join(", ")
+    );
+
+    if (root) {
+      return true;
+    }
+
+    const settingsMenus = video.closest("div")?.querySelectorAll("button, [role='menuitem']");
+
+    if (!settingsMenus) {
+      return false;
+    }
+
+    return Array.from(settingsMenus).some((node) => /speed|playback/i.test(node.textContent || ""));
+  };
+
+  const parseRgbToLuminance = (value) => {
+    if (!value || value === "transparent") {
+      return 0.12;
+    }
+
+    const parts = value.match(/rgba?\(([^)]+)\)/i);
+
+    if (!parts) {
+      return 0.12;
+    }
+
+    const nums = parts[1].split(",").map((part) => Number(part.trim()));
+
+    if (nums.length < 3) {
+      return 0.12;
+    }
+
+    const [r, g, b] = nums;
+    const a = nums.length > 3 ? nums[3] : 1;
+
+    if (!Number.isFinite(r) || !Number.isFinite(g) || !Number.isFinite(b)) {
+      return 0.12;
+    }
+
+    const rs = r / 255;
+    const gs = g / 255;
+    const bs = b / 255;
+
+    return (0.2126 * rs + 0.7152 * gs + 0.0722 * bs) * (Number.isFinite(a) ? a : 1);
+  };
+
+  const resolveFloatingTheme = () => {
+    if (themeMode === "dark") {
+      return "dark";
+    }
+
+    if (themeMode === "light") {
+      return "light";
+    }
+
+    const video = getVideo();
+    const sample = video?.parentElement || document.body;
+    const bg = window.getComputedStyle(sample).backgroundColor;
+    const lum = parseRgbToLuminance(bg);
+
+    if (lum > 0.55) {
+      return "light";
+    }
+
+    if (lum < 0.35) {
+      return "dark";
+    }
+
+    return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  };
+
+  const rectsIntersect = (a, b) => {
+    if (!a || !b) {
+      return false;
+    }
+
+    return !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
+  };
+
+  const inflateRect = (rect, pad) => ({
+    left: rect.left - pad,
+    top: rect.top - pad,
+    right: rect.right + pad,
+    bottom: rect.bottom + pad
+  });
+
+  const overlapArea = (a, b) => {
+    if (!rectsIntersect(a, b)) {
+      return 0;
+    }
+
+    const left = Math.max(a.left, b.left);
+    const top = Math.max(a.top, b.top);
+    const right = Math.min(a.right, b.right);
+    const bottom = Math.min(a.bottom, b.bottom);
+
+    return Math.max(0, right - left) * Math.max(0, bottom - top);
+  };
+
+  const getPlayerRootForLayout = (video) => {
+    if (!video) {
+      return null;
+    }
+
+    const hints = [
+      ".html5-video-player",
+      "[data-player]",
+      "[data-testid*='player' i]",
+      ".plyr",
+      ".plyr__video-wrapper",
+      ".video-js",
+      "[class*='video-player' i]",
+      "[class*='VideoPlayer' i]",
+      "[class*='watch-video' i]"
+    ].join(",");
+
+    const direct = video.closest(hints);
+
+    if (direct) {
+      return direct;
+    }
+
+    let el = video.parentElement;
+    const vrect = video.getBoundingClientRect();
+
+    for (let i = 0; i < 9 && el; i += 1) {
+      const b = el.getBoundingClientRect?.();
+
+      if (b && vrect.width > 0 && b.width >= vrect.width * 0.82 && b.height >= vrect.height * 0.7) {
+        return el;
+      }
+
+      el = el.parentElement;
+    }
+
+    return video.parentElement || video;
+  };
+
+  const gatherObstacleRects = (video, vr) => {
+    if (!video || !vr?.width) {
+      return [];
+    }
+
+    const root = getPlayerRootForLayout(video);
+    const out = [];
+
+    const push = (r) => {
+      if (!r || r.width < 14 || r.height < 3) {
+        return;
+      }
+
+      if (!rectsIntersect(r, vr)) {
+        return;
+      }
+
+      out.push(r);
+    };
+
+    const sel = [
+      ".ytp-chrome-bottom",
+      ".ytp-gradient-bottom",
+      ".ytp-right-controls",
+      ".ytp-left-controls",
+      ".ytp-caption-window-container",
+      ".ytp-caption-window",
+      ".vjs-control-bar",
+      ".vjs-progress-control",
+      ".vjs-text-track-display",
+      "[class*='control-bar' i]",
+      "[class*='ControlBar' i]",
+      "[class*='progress' i]",
+      "[class*='Progress' i]",
+      "[class*='seekbar' i]",
+      "[class*='scrub' i]",
+      "[class*='Seek' i]",
+      "[class*='timeline' i]",
+      "[class*='caption' i]",
+      "[class*='subtitle' i]",
+      "[class*='timedtext' i]",
+      "[class*='BottomControls' i]",
+      ".shaka-bottom-controls",
+      ".shaka-text-container",
+      "[data-uia*='control' i]"
+    ].join(",");
+
+    if (root?.querySelectorAll) {
+      root.querySelectorAll(sel).forEach((el) => {
+        if (!(el instanceof HTMLElement)) {
+          return;
+        }
+
+        if (widget && (widget === el || widget.contains(el) || el.contains(widget))) {
+          return;
+        }
+
+        const style = window.getComputedStyle(el);
+
+        if (style.display === "none" || style.visibility === "hidden") {
+          return;
+        }
+
+        const opacity = parseFloat(style.opacity);
+
+        if (Number.isFinite(opacity) && opacity < 0.03) {
+          return;
+        }
+
+        push(el.getBoundingClientRect());
+      });
+    }
+
+    push({
+      left: vr.left,
+      top: vr.top + vr.height * 0.56,
+      right: vr.right,
+      bottom: vr.bottom
+    });
+
+    return out;
+  };
+
+  const sampleCornerOccupancyPenalty = (left, top, w, h, video) => {
+    const pts = [
+      [left + w * 0.22, top + h * 0.38],
+      [left + w * 0.5, top + h * 0.45],
+      [left + w * 0.78, top + h * 0.38]
+    ];
+
+    let penalty = 0;
+
+    for (const [x, y] of pts) {
+      const stack = document.elementsFromPoint(x, y);
+
+      for (let i = 0; i < Math.min(14, stack.length); i += 1) {
+        const el = stack[i];
+
+        if (!(el instanceof Element)) {
+          continue;
+        }
+
+        if (widget && widget.contains(el)) {
+          return penalty;
+        }
+
+        if (video && (el === video || video.contains(el))) {
+          break;
+        }
+
+        const tag = el.tagName;
+
+        if (tag === "HTML" || tag === "BODY") {
+          continue;
+        }
+
+        const cls = el.className?.toString?.() || "";
+
+        if (/topbar|navbar|header|app-bar|site-header|masthead/i.test(cls)) {
+          penalty += 5;
+        }
+
+        if (/share|reaction|comment|social|pip-button|cast|airplay|chromecast/i.test(cls)) {
+          penalty += 3;
+        }
+
+        penalty += 0.35;
+      }
+    }
+
+    return penalty;
+  };
+
+  const pickBestFloatingPosition = (video, vr, ww, wh, fullscreenUi, verticalLayout, obstacles) => {
+    const vw = window.innerWidth || 0;
+    const vh = window.innerHeight || 0;
+    const edge = FLOATING_EDGE_MARGIN + (fullscreenUi ? 6 : 0);
+    const pad = FLOATING_COLLISION_PAD;
+    const list = Array.isArray(obstacles) ? obstacles : [];
+
+    const corners = [
+      { id: "tr", ox: 1, oy: 0 },
+      { id: "tl", ox: 0, oy: 0 },
+      { id: "br", ox: 1, oy: 1 },
+      { id: "bl", ox: 0, oy: 1 }
+    ];
+
+    const slotFor = (corner) => {
+      let left = corner.ox ? vr.right - ww - edge : vr.left + edge;
+      let top = corner.oy ? vr.bottom - wh - edge : vr.top + edge;
+
+      if (verticalLayout) {
+        if (corner.id === "tr" || corner.id === "tl") {
+          top = vr.top + edge + (fullscreenUi ? 28 : 16);
+        } else {
+          top = vr.top + edge + vr.height * (fullscreenUi ? 0.12 : 0.08);
+        }
+      }
+
+      left = Math.min(Math.max(left, edge), vw - ww - edge);
+      top = Math.min(Math.max(top, edge), vh - wh - edge);
+
+      return { left, top, right: left + ww, bottom: top + wh, id: corner.id };
+    };
+
+    let best = null;
+    let bestScore = Infinity;
+
+    for (const corner of corners) {
+      const slot = slotFor(corner);
+      const inflated = inflateRect(slot, pad);
+      let score = 0;
+
+      for (const ob of list) {
+        const hit = overlapArea(inflated, ob);
+
+        if (hit > 0) {
+          score += hit;
+
+          if (ob.top > vr.top + vr.height * 0.48) {
+            score += hit * 0.9;
+          }
+        }
+      }
+
+      if (verticalLayout && (corner.id === "br" || corner.id === "bl")) {
+        score += ww * wh * 0.06;
+      }
+
+      score += sampleCornerOccupancyPenalty(slot.left, slot.top, ww, wh, video) * 10;
+
+      const preference = { tr: 0, tl: 1, br: 2, bl: 3 }[corner.id];
+
+      score += preference * (ww * 0.15);
+
+      if (score < bestScore) {
+        bestScore = score;
+        best = slot;
+      }
+    }
+
+    if (!best) {
+      return {
+        left: Math.min(Math.max(vr.right - ww - edge, edge), vw - ww - edge),
+        top: Math.min(Math.max(vr.top + edge, edge), vh - wh - edge),
+        id: "tr"
+      };
+    }
+
+    return best;
+  };
+
+  const applyFloatingPresentation = () => {
+    if (!widget || widgetPlacement !== "floating") {
+      return;
+    }
+
+    const theme = resolveFloatingTheme();
+
+    widget.dataset.yscTheme = theme;
+    toast?.setAttribute("data-ysc-theme", theme);
+
+    const fullscreenUi = Boolean(document.fullscreenElement || getPlayer()?.classList.contains("ytp-fullscreen"));
+
+    widget.classList.toggle("ysc-speed-widget--fs", fullscreenUi);
+
+    const video = getVideo();
     const rect = video?.getBoundingClientRect();
 
-    return Boolean(player && video && rect && rect.width > 0 && rect.height > 0);
+    widget.style.right = "auto";
+    widget.style.bottom = "auto";
+
+    if (!rect || rect.width < 80 || rect.height < 80) {
+      widget.style.left = "";
+      widget.style.top = "";
+      widget.classList.remove("ysc-speed-widget--vertical");
+      applyFloatingAmbientClass();
+      return;
+    }
+
+    const now = performance.now();
+    const runHeavy = now - lastFloatingLayoutAt >= FLOATING_LAYOUT_MIN_MS;
+    const srcTag = String(video.currentSrc || video.src || "").slice(-48);
+    const obsKey = `${srcTag}_${Math.round(rect.left)}_${Math.round(rect.top)}_${Math.round(rect.width)}_${Math.round(rect.height)}`;
+
+    if (runHeavy || cachedObstacleKey !== obsKey) {
+      cachedObstacleRects = gatherObstacleRects(video, rect);
+      cachedObstacleKey = obsKey;
+    }
+
+    if (runHeavy) {
+      lastFloatingLayoutAt = now;
+    }
+
+    const ww = widget.offsetWidth || FLOATING_WIDGET_FALLBACK_W;
+    const wh = widget.offsetHeight || FLOATING_WIDGET_FALLBACK_H;
+    const verticalLayout = rect.height / rect.width >= 1.18;
+
+    widget.classList.toggle("ysc-speed-widget--vertical", verticalLayout);
+
+    const pos = pickBestFloatingPosition(
+      video,
+      rect,
+      ww,
+      wh,
+      fullscreenUi,
+      verticalLayout,
+      cachedObstacleRects
+    );
+
+    widget.style.left = `${Math.round(pos.left)}px`;
+    widget.style.top = `${Math.round(pos.top)}px`;
+
+    applyFloatingAmbientClass();
   };
 
   const ensureToast = () => {
@@ -175,13 +1278,28 @@
     toast.append(toastLabelText, toastValueText);
   };
 
+  const getToastParent = () => {
+    const player = getPlayer();
+
+    if (player) {
+      return player;
+    }
+
+    const fs = document.fullscreenElement;
+
+    if (fs) {
+      return fs;
+    }
+
+    return document.body;
+  };
+
   const showToast = ({ label = "Speed", value, force = false }) => {
     if (toastHidden && !force) {
       return;
     }
 
-    const player = getPlayer();
-    const parent = player || document.body;
+    const parent = getToastParent();
 
     if (!parent) {
       return;
@@ -191,6 +1309,10 @@
 
     if (toast.parentElement !== parent) {
       parent.append(toast);
+    }
+
+    if (widgetPlacement === "floating") {
+      applyFloatingPresentation();
     }
 
     toastLabelText.textContent = label;
@@ -211,8 +1333,23 @@
     });
   };
 
+  const isFullscreenMode = () => Boolean(
+    document.fullscreenElement
+    || getPlayer()?.classList.contains("ytp-fullscreen")
+  );
+
   const updateWidgetVisibility = () => {
-    widget?.classList.toggle("ysc-speed-widget-hidden", widgetHidden);
+    const hideForFullscreen = fullscreenOnlyControls && !isFullscreenMode();
+    const shouldHide = !isExtensionControllingPage() || widgetHidden || hideForFullscreen;
+
+    widget?.classList.toggle("ysc-speed-widget-hidden", shouldHide);
+    widget?.classList.toggle("ysc-speed-widget-compact", compactMode);
+
+    if (shouldHide && widgetPlacement === "floating") {
+      resetFloatingHoverState();
+    } else {
+      applyFloatingAmbientClass();
+    }
   };
 
   const updateWidget = (rate = getCurrentRate()) => {
@@ -230,6 +1367,7 @@
     widget.querySelector(".ysc-speed-decrease").disabled = rate <= SPEEDS[0] + EPSILON;
     widget.querySelector(".ysc-speed-increase").disabled = rate >= SPEEDS[SPEEDS.length - 1] - EPSILON;
     updateWidgetVisibility();
+    applyFloatingPresentation();
   };
 
   const getRateKey = (rate) => normalizePlaybackRate(rate).toFixed(2);
@@ -264,6 +1402,10 @@
       forceToast = false
     } = {}
   ) => {
+    if (!isExtensionControllingPage()) {
+      return false;
+    }
+
     const nextRate = normalizePlaybackRate(rate);
     const video = getVideo();
     const currentRate = normalizePlaybackRate(video?.playbackRate || preferredRate);
@@ -303,19 +1445,133 @@
     return applyRate(nextRate, options);
   };
 
-  const createButton = ({ className, text, label, title, onClick }) => {
+  const clearSuppressedClick = () => {
+    suppressedClickButton = null;
+    window.clearTimeout(suppressedClickTimer);
+    suppressedClickTimer = 0;
+  };
+
+  const suppressNextClickFor = (button) => {
+    if (!button) {
+      return;
+    }
+
+    suppressedClickButton = button;
+    window.clearTimeout(suppressedClickTimer);
+    suppressedClickTimer = window.setTimeout(clearSuppressedClick, SUPPRESS_CLICK_AFTER_HOLD_MS);
+  };
+
+  const clearHoldTimers = () => {
+    window.clearTimeout(holdDelayTimer);
+    window.clearInterval(holdIntervalTimer);
+    holdDelayTimer = 0;
+    holdIntervalTimer = 0;
+  };
+
+  const stopSpeedHold = ({ suppressClick = true } = {}) => {
+    const activeButton = holdButton;
+    const shouldSuppressClick = suppressClick && holdActivated;
+
+    clearHoldTimers();
+    activeButton?.classList.remove("ysc-speed-holding");
+
+    holdDirection = 0;
+    holdButton = null;
+    holdActivated = false;
+
+    if (shouldSuppressClick) {
+      suppressNextClickFor(activeButton);
+    }
+  };
+
+  const runHoldStep = () => {
+    if (!holdDirection) {
+      return;
+    }
+
+    const changed = moveRate(holdDirection, { notify: true });
+
+    if (!changed) {
+      stopSpeedHold({ suppressClick: true });
+    }
+  };
+
+  const startSpeedHold = (event, direction, button) => {
+    if (button.disabled || (event.pointerType === "mouse" && event.button !== 0)) {
+      return;
+    }
+
+    event.stopPropagation();
+    stopSpeedHold({ suppressClick: false });
+
+    holdDirection = direction;
+    holdButton = button;
+    holdActivated = false;
+    button.classList.add("ysc-speed-holding");
+
+    holdDelayTimer = window.setTimeout(() => {
+      holdActivated = true;
+      runHoldStep();
+
+      if (holdDirection) {
+        holdIntervalTimer = window.setInterval(runHoldStep, HOLD_REPEAT_MS);
+      }
+    }, HOLD_START_DELAY_MS);
+  };
+
+  const createIcon = (type) => {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "path");
+
+    svg.classList.add("ysc-speed-icon");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("aria-hidden", "true");
+
+    line.setAttribute("fill", "none");
+    line.setAttribute("stroke", "currentColor");
+    line.setAttribute("stroke-linecap", "round");
+    line.setAttribute("stroke-linejoin", "round");
+    line.setAttribute("stroke-width", "2.4");
+    line.setAttribute("d", type === "plus" ? "M12 5v14M5 12h14" : "M5 12h14");
+
+    svg.append(line);
+
+    return svg;
+  };
+
+  const createButton = ({ className, text, icon, label, title, holdDirection: direction, onClick }) => {
     const button = document.createElement("button");
 
     button.type = "button";
     button.className = `ysc-speed-button ${className}`;
-    button.textContent = text;
     button.setAttribute("aria-label", label);
     button.title = title;
+
+    if (icon) {
+      button.append(createIcon(icon));
+    } else {
+      button.textContent = text;
+    }
+
     button.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
+
+      if (suppressedClickButton === button) {
+        clearSuppressedClick();
+        return;
+      }
+
       onClick();
     });
+
+    if (direction) {
+      button.addEventListener("pointerdown", (event) => startSpeedHold(event, direction, button));
+      button.addEventListener("pointerup", () => stopSpeedHold());
+      button.addEventListener("pointercancel", () => stopSpeedHold());
+      button.addEventListener("pointerleave", () => stopSpeedHold());
+      button.addEventListener("touchend", () => stopSpeedHold());
+    }
 
     return button;
   };
@@ -329,9 +1585,10 @@
 
     const decrease = createButton({
       className: "ysc-speed-decrease",
-      text: "-",
+      icon: "minus",
       label: "Decrease playback speed",
       title: "Decrease playback speed",
+      holdDirection: -1,
       onClick: () => moveRate(-1, { notify: true })
     });
 
@@ -345,9 +1602,10 @@
 
     const increase = createButton({
       className: "ysc-speed-increase",
-      text: "+",
+      icon: "plus",
       label: "Increase playback speed",
       title: "Increase playback speed",
+      holdDirection: 1,
       onClick: () => moveRate(1, { notify: true })
     });
 
@@ -356,6 +1614,27 @@
     for (const eventName of ["click", "dblclick", "mousedown", "pointerdown", "touchstart"]) {
       container.addEventListener(eventName, (event) => event.stopPropagation());
     }
+
+    container.addEventListener("pointerenter", () => {
+      if (!container.classList.contains("ysc-speed-widget--floating")) {
+        return;
+      }
+
+      clearFloatingHideTimer();
+
+      if (!floatingHoverActive) {
+        floatingHoverActive = true;
+        applyFloatingAmbientClass();
+      }
+    });
+
+    container.addEventListener("pointerleave", () => {
+      if (!container.classList.contains("ysc-speed-widget--floating")) {
+        return;
+      }
+
+      scheduleFloatingHide();
+    });
 
     return container;
   };
@@ -370,17 +1649,23 @@
     return style.display !== "none" && style.visibility !== "hidden";
   };
 
-  const placeWidget = () => {
+  const placeYouTubeWidget = () => {
     const player = getPlayer();
     const rightControls = player?.querySelector(".ytp-right-controls");
 
     if (!rightControls) {
-      return;
+      return false;
     }
 
     if (!widget) {
       widget = createWidget();
     }
+
+    widget.classList.remove("ysc-speed-widget--floating");
+    widgetPlacement = "youtube";
+    resetFloatingHoverState();
+    cachedObstacleKey = "";
+    lastFloatingLayoutAt = 0;
 
     const captionsButton = rightControls.querySelector(".ytp-subtitles-button");
     const settingsButton = rightControls.querySelector(".ytp-settings-button");
@@ -397,6 +1682,33 @@
       rightControls.append(widget);
     }
 
+    return true;
+  };
+
+  const placeFloatingWidget = () => {
+    if (!widget) {
+      widget = createWidget();
+    }
+
+    widget.classList.add("ysc-speed-widget--floating");
+    widgetPlacement = "floating";
+    cachedObstacleKey = "";
+    lastFloatingLayoutAt = 0;
+
+    if (widget.parentElement !== document.body) {
+      document.body.append(widget);
+    }
+
+    applyFloatingPresentation();
+  };
+
+  const placeWidget = () => {
+    if (isYouTubeHost() && placeYouTubeWidget()) {
+      updateWidget(getCurrentRate());
+      return;
+    }
+
+    placeFloatingWidget();
     updateWidget(getCurrentRate());
   };
 
@@ -408,12 +1720,20 @@
     }
 
     const changedRate = normalizePlaybackRate(video.playbackRate);
-
     const changedRateKey = getRateKey(changedRate);
 
     if (pendingProgrammaticRates.has(changedRateKey)) {
       pendingProgrammaticRates.delete(changedRateKey);
       updateWidget(changedRate);
+      return;
+    }
+
+    const mode = getEffectiveNativeMode();
+
+    if (mode === "sync") {
+      preferredRate = changedRate;
+      updateWidget(changedRate);
+      savePreferredRate(changedRate);
       return;
     }
 
@@ -428,8 +1748,77 @@
     }
   };
 
+  const getPreferredRateForCurrentVideo = () => {
+    const host = normalizeHost(getHostname());
+    const siteRate = rememberPerSite && host ? sitePolicies[host]?.preferredRate : null;
+
+    if (rememberPerSite && Number.isFinite(siteRate)) {
+      return normalizePlaybackRate(siteRate);
+    }
+
+    const channelKey = getChannelKey();
+    const channelRate = channelKey ? channelRates[channelKey] : null;
+
+    if (rememberPerChannel && isYouTubeHost() && channelRate) {
+      return normalizePlaybackRate(channelRate);
+    }
+
+    if (rememberGlobally) {
+      return preferredRate;
+    }
+
+    return startupDefaultSpeed;
+  };
+
   const enforcePreferredRate = () => {
-    applyRate(isBoosting ? BOOST_RATE : preferredRate, { persist: false });
+    if (!isExtensionControllingPage() || !autoApplyPreferredSpeed) {
+      return;
+    }
+
+    if (getEffectiveNativeMode() === "sync") {
+      return;
+    }
+
+    applyRate(isBoosting ? BOOST_RATE : getPreferredRateForCurrentVideo(), { persist: false });
+  };
+
+  const touchAmbientStart = (event) => {
+    if (widgetPlacement !== "floating") {
+      return;
+    }
+
+    const touch = event.touches?.[0];
+
+    if (touch) {
+      lastPointerClientX = touch.clientX;
+      lastPointerClientY = touch.clientY;
+    }
+
+    clearFloatingHideTimer();
+    floatingHoverActive = true;
+    applyFloatingAmbientClass();
+  };
+
+  const touchAmbientEnd = () => {
+    if (widgetPlacement !== "floating") {
+      return;
+    }
+
+    scheduleFloatingHide();
+  };
+
+  const detachVideoListeners = () => {
+    if (!activeVideo) {
+      return;
+    }
+
+    activeVideo.removeEventListener("ratechange", handleRateChange);
+    activeVideo.removeEventListener("loadedmetadata", enforcePreferredRate);
+    activeVideo.removeEventListener("canplay", enforcePreferredRate);
+    activeVideo.removeEventListener("play", enforcePreferredRate);
+    activeVideo.removeEventListener("playing", enforcePreferredRate);
+    activeVideo.removeEventListener("touchstart", touchAmbientStart);
+    activeVideo.removeEventListener("touchend", touchAmbientEnd);
   };
 
   const watchVideo = () => {
@@ -439,23 +1828,29 @@
       return;
     }
 
-    if (activeVideo) {
-      activeVideo.removeEventListener("ratechange", handleRateChange);
-      activeVideo.removeEventListener("loadedmetadata", enforcePreferredRate);
-      activeVideo.removeEventListener("canplay", enforcePreferredRate);
-      activeVideo.removeEventListener("play", enforcePreferredRate);
-    }
+    detachVideoListeners();
 
     activeVideo = video;
     activeVideo.addEventListener("ratechange", handleRateChange);
     activeVideo.addEventListener("loadedmetadata", enforcePreferredRate);
     activeVideo.addEventListener("canplay", enforcePreferredRate);
     activeVideo.addEventListener("play", enforcePreferredRate);
+    activeVideo.addEventListener("playing", enforcePreferredRate);
+    activeVideo.addEventListener("touchstart", touchAmbientStart, { passive: true });
+    activeVideo.addEventListener("touchend", touchAmbientEnd, { passive: true });
 
     enforcePreferredRate();
   };
 
   const refresh = () => {
+    if (!isExtensionControllingPage()) {
+      widget?.classList.add("ysc-speed-widget-hidden");
+      resetFloatingHoverState();
+      detachVideoListeners();
+      activeVideo = null;
+      return;
+    }
+
     placeWidget();
     watchVideo();
   };
@@ -491,26 +1886,24 @@
     event.stopImmediatePropagation();
   };
 
-  const isShiftOnly = (event) => event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey;
-
-  const isPlainKey = (event, code, key) => {
-    if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey || event.isComposing) {
+  const shortcutMatches = (event, shortcut) => {
+    if (!shortcut || event.isComposing) {
       return false;
     }
 
-    return event.code === code || (event.key || "").toLowerCase() === key;
+    return event.code === shortcut.code
+      && event.shiftKey === Boolean(shortcut.shift)
+      && event.ctrlKey === Boolean(shortcut.ctrl)
+      && event.altKey === Boolean(shortcut.alt)
+      && event.metaKey === Boolean(shortcut.meta);
   };
 
   const getShortcutDirection = (event) => {
-    if (!isShiftOnly(event) || event.isComposing) {
-      return 0;
-    }
-
-    if (event.code === "Period" || event.key === ">") {
+    if (shortcutMatches(event, shortcuts.increase)) {
       return 1;
     }
 
-    if (event.code === "Comma" || event.key === "<") {
+    if (shortcutMatches(event, shortcuts.decrease)) {
       return -1;
     }
 
@@ -518,28 +1911,24 @@
   };
 
   const getPresetRate = (event) => {
-    if (!event.altKey || event.shiftKey || event.ctrlKey || event.metaKey || event.isComposing) {
-      return null;
+    for (const [action, rate] of Object.entries(PRESET_ACTION_RATES)) {
+      if (shortcutMatches(event, shortcuts[action])) {
+        return rate;
+      }
     }
 
-    return PRESET_RATES[event.code] ?? null;
+    return null;
   };
 
-  const isResetShortcut = (event) => isShiftOnly(event)
-    && !event.isComposing
-    && event.code === "Backspace";
+  const isResetShortcut = (event) => shortcutMatches(event, shortcuts.reset);
 
-  const isWidgetToggleShortcut = (event) => isShiftOnly(event)
-    && !event.isComposing
-    && (event.code === "KeyS" || (event.key || "").toLowerCase() === "s");
+  const isWidgetToggleShortcut = (event) => shortcutMatches(event, shortcuts.widgetToggle);
 
-  const isToastToggleShortcut = (event) => isShiftOnly(event)
-    && !event.isComposing
-    && (event.code === "KeyH" || (event.key || "").toLowerCase() === "h");
+  const isToastToggleShortcut = (event) => shortcutMatches(event, shortcuts.overlayToggle);
 
-  const isBoostKey = (event) => isPlainKey(event, "KeyX", "x");
+  const isBoostKey = (event) => shortcutMatches(event, shortcuts.boost);
 
-  const isBoostReleaseKey = (event) => event.code === "KeyX" || (event.key || "").toLowerCase() === "x";
+  const isBoostReleaseKey = (event) => event.code === shortcuts.boost.code;
 
   const startTemporaryBoost = () => {
     if (isBoosting) {
@@ -593,11 +1982,19 @@
   };
 
   const handleKeyboardShortcut = (event) => {
-    if (isTypingContext(event) || !hasActiveVideoPlayer()) {
+    if (!extensionEnabled || !keyboardEnabled || isTypingContext(event) || !hasActiveVideoPlayer()) {
+      return;
+    }
+
+    if (!isExtensionControllingPage()) {
       return;
     }
 
     if (isBoostKey(event)) {
+      if (!boostEnabled) {
+        return;
+      }
+
       consumeEvent(event);
 
       if (!event.repeat) {
@@ -672,14 +2069,45 @@
     stopTemporaryBoost();
   };
 
+  const pathTouchesVideo = (event, video) => {
+    if (!video) {
+      return false;
+    }
+
+    return event.composedPath().includes(video);
+  };
+
   const handleWheel = (event) => {
-    if (!event.ctrlKey || event.altKey || event.metaKey || event.shiftKey || event.deltaY === 0) {
+    if (
+      !extensionEnabled
+      || !mouseWheelEnabled
+      || !event.ctrlKey
+      || event.altKey
+      || event.metaKey
+      || event.shiftKey
+      || event.deltaY === 0
+    ) {
       return;
     }
 
-    const player = getPlayer();
+    if (!isExtensionControllingPage() || isTypingContext(event)) {
+      return;
+    }
 
-    if (!player || isTypingContext(event) || !event.composedPath().includes(player)) {
+    const pathVideo = event.composedPath().find(
+      (node) => node instanceof HTMLVideoElement && isVideoUsable(node)
+    );
+
+    if (pathVideo) {
+      lastPointerVideo = pathVideo;
+    }
+
+    const targetVideo = getVideo();
+    const player = getPlayer();
+    const overYoutubeChrome = player && event.composedPath().includes(player);
+    const overVideo = pathVideo || pathTouchesVideo(event, targetVideo);
+
+    if (!overYoutubeChrome && !overVideo) {
       return;
     }
 
@@ -695,6 +2123,345 @@
     moveRate(event.deltaY < 0 ? 1 : -1, { notify: true });
   };
 
+  const getVideoTitle = () => {
+    if (isYouTubeHost()) {
+      const title = document.querySelector("ytd-watch-metadata h1 yt-formatted-string")?.textContent?.trim()
+        || document.querySelector("h1.title yt-formatted-string")?.textContent?.trim()
+        || document.title.replace(/\s*-\s*YouTube\s*$/, "").trim();
+
+      return title || "Untitled video";
+    }
+
+    const video = getVideo();
+    const aria = video?.getAttribute("aria-label")?.trim();
+    const trackLabel = video?.textTracks?.[0]?.label?.trim();
+
+    return aria || trackLabel || document.title.trim() || "Video";
+  };
+
+  const getMostUsedSpeed = () => {
+    const entries = Object.entries(analytics.speedUsageSeconds || {});
+
+    if (!entries.length) {
+      return formatRate(getCurrentRate());
+    }
+
+    return entries.sort((a, b) => b[1] - a[1])[0][0];
+  };
+
+  const saveAnalytics = () => {
+    saveSetting(STORAGE_KEYS.analytics, analytics);
+    analyticsLastSaveAt = performance.now();
+  };
+
+  const trackAnalytics = () => {
+    const now = performance.now();
+    const video = getVideo();
+
+    if (!analyticsLastAt) {
+      analyticsLastAt = now;
+      return;
+    }
+
+    const deltaSeconds = Math.min(5, Math.max(0, (now - analyticsLastAt) / 1000));
+    analyticsLastAt = now;
+
+    if (!isExtensionControllingPage() || !video || video.paused || video.ended || deltaSeconds <= 0) {
+      return;
+    }
+
+    if (analytics.dailyDate !== getTodayKey()) {
+      analytics.dailyDate = getTodayKey();
+      analytics.dailyUsageSeconds = 0;
+    }
+
+    const rate = normalizePlaybackRate(video.playbackRate || preferredRate);
+    const rateLabel = formatRate(rate);
+
+    analytics.dailyUsageSeconds += deltaSeconds;
+    analytics.timeSavedSeconds += Math.max(0, deltaSeconds * (rate - 1));
+    analytics.speedUsageSeconds = {
+      ...analytics.speedUsageSeconds,
+      [rateLabel]: (analytics.speedUsageSeconds[rateLabel] || 0) + deltaSeconds
+    };
+
+    sessionActiveSeconds += deltaSeconds;
+    sessionRateWeightedSeconds += rate * deltaSeconds;
+
+    if (now - analyticsLastSaveAt > 15000) {
+      saveAnalytics();
+    }
+  };
+
+  const getAccessBlockReason = () => {
+    const host = normalizeHost(getHostname());
+    const list = siteAccessList.map(normalizeHost).filter(Boolean);
+
+    if (siteAccessMode === "whitelist" && !list.includes(host)) {
+      return "whitelist";
+    }
+
+    if (siteAccessMode === "blacklist" && list.includes(host)) {
+      return "blacklist";
+    }
+
+    if (getSitePolicy().disabled) {
+      return "site_disabled";
+    }
+
+    return null;
+  };
+
+  const getSettingsSnapshot = () => ({
+    enabled: extensionEnabled,
+    widgetEnabled: !widgetHidden,
+    keyboardEnabled,
+    mouseWheelEnabled,
+    boostEnabled,
+    rememberPerChannel,
+    rememberGlobally,
+    rememberPerSite,
+    autoApplyPreferredSpeed,
+    compactMode,
+    overlayEnabled: !toastHidden,
+    fullscreenOnlyControls,
+    themeMode,
+    startupDefaultSpeed,
+    siteAccessMode,
+    defaultNativeMode
+  });
+
+  const collectState = () => {
+    const video = getVideo();
+    const hasVideo = Boolean(video && isVideoUsable(video));
+    const rate = getCurrentRate();
+    const sessionAverageSpeed = sessionActiveSeconds
+      ? sessionRateWeightedSeconds / sessionActiveSeconds
+      : rate;
+    const host = getHostname();
+    const policy = getSitePolicy();
+    const nativeMode = getEffectiveNativeMode();
+
+    let status = "Active";
+
+    if (!extensionEnabled) {
+      status = "Disabled";
+    } else if (getAccessBlockReason()) {
+      status = "Disabled on this site";
+    } else if (!hasVideo) {
+      status = "No active video found";
+    }
+
+    return {
+      status,
+      enabled: extensionEnabled,
+      hasVideo,
+      rate,
+      preferredRate,
+      minRate: MIN_PLAYBACK_RATE,
+      maxRate: MAX_PLAYBACK_RATE,
+      step: SPEED_STEP,
+      video: {
+        title: hasVideo ? getVideoTitle() : "",
+        duration: hasVideo && Number.isFinite(video.duration) ? video.duration : 0,
+        currentTime: hasVideo && Number.isFinite(video.currentTime) ? video.currentTime : 0,
+        paused: hasVideo ? video.paused : true
+      },
+      tab: {
+        domain: host,
+        url: location.href,
+        isYouTube: isYouTubeHost(),
+        siteDisabled: policy.disabled === true,
+        rememberPerSite,
+        sitePreferredRate: policy.preferredRate ?? null,
+        siteNativeOverride: policy.nativeMode ?? null,
+        nativeMode,
+        defaultNativeMode,
+        siteAccessMode,
+        siteAccessList,
+        accessBlockedReason: getAccessBlockReason(),
+        nativeControlsLikely: hasVideo ? detectNativeSpeedHeuristic(video) : false
+      },
+      settings: getSettingsSnapshot(),
+      shortcuts,
+      analytics: {
+        dailyUsageSeconds: analytics.dailyUsageSeconds || 0,
+        timeSavedSeconds: analytics.timeSavedSeconds || 0,
+        mostUsedSpeed: getMostUsedSpeed(),
+        sessionAverageSpeed
+      }
+    };
+  };
+
+  const updateExtensionSetting = (key, value) => {
+    switch (key) {
+      case "enabled":
+        extensionEnabled = Boolean(value);
+        saveSetting(STORAGE_KEYS.enabled, extensionEnabled);
+        if (!extensionEnabled) {
+          stopTemporaryBoost();
+          stopSpeedHold({ suppressClick: false });
+        } else {
+          enforcePreferredRate();
+        }
+        break;
+      case "widgetEnabled":
+        widgetHidden = !value;
+        saveSetting(STORAGE_KEYS.widgetHidden, widgetHidden);
+        break;
+      case "keyboardEnabled":
+        keyboardEnabled = Boolean(value);
+        saveSetting(STORAGE_KEYS.keyboardEnabled, keyboardEnabled);
+        break;
+      case "mouseWheelEnabled":
+        mouseWheelEnabled = Boolean(value);
+        saveSetting(STORAGE_KEYS.mouseWheelEnabled, mouseWheelEnabled);
+        break;
+      case "boostEnabled":
+        boostEnabled = Boolean(value);
+        saveSetting(STORAGE_KEYS.boostEnabled, boostEnabled);
+        if (!boostEnabled) {
+          stopTemporaryBoost();
+        }
+        break;
+      case "rememberPerChannel":
+        rememberPerChannel = Boolean(value);
+        saveSetting(STORAGE_KEYS.rememberPerChannel, rememberPerChannel);
+        break;
+      case "rememberGlobally":
+        rememberGlobally = Boolean(value);
+        saveSetting(STORAGE_KEYS.rememberGlobally, rememberGlobally);
+        break;
+      case "rememberPerSite":
+        rememberPerSite = Boolean(value);
+        saveSetting(STORAGE_KEYS.rememberPerSite, rememberPerSite);
+        break;
+      case "autoApplyPreferredSpeed":
+        autoApplyPreferredSpeed = Boolean(value);
+        saveSetting(STORAGE_KEYS.autoApplyPreferredSpeed, autoApplyPreferredSpeed);
+        if (autoApplyPreferredSpeed) {
+          enforcePreferredRate();
+        }
+        break;
+      case "compactMode":
+        compactMode = Boolean(value);
+        saveSetting(STORAGE_KEYS.compactMode, compactMode);
+        break;
+      case "overlayEnabled":
+        toastHidden = !value;
+        saveSetting(STORAGE_KEYS.toastHidden, toastHidden);
+        break;
+      case "fullscreenOnlyControls":
+        fullscreenOnlyControls = Boolean(value);
+        saveSetting(STORAGE_KEYS.fullscreenOnlyControls, fullscreenOnlyControls);
+        break;
+      case "themeMode":
+        themeMode = ["auto", "dark", "light"].includes(value) ? value : "auto";
+        saveSetting(STORAGE_KEYS.themeMode, themeMode);
+        break;
+      case "startupDefaultSpeed":
+        startupDefaultSpeed = normalizePlaybackRate(value);
+        saveSetting(STORAGE_KEYS.startupDefaultSpeed, startupDefaultSpeed);
+        break;
+      case "siteAccessMode":
+        siteAccessMode = ["all", "whitelist", "blacklist"].includes(value) ? value : "all";
+        saveSetting(STORAGE_KEYS.siteAccessMode, siteAccessMode);
+        break;
+      case "defaultNativeMode":
+        defaultNativeMode = ["override", "sync"].includes(value) ? value : "override";
+        saveSetting(STORAGE_KEYS.defaultNativeMode, defaultNativeMode);
+        break;
+      default:
+        return false;
+    }
+
+    updateWidgetVisibility();
+    applyFloatingPresentation();
+    return true;
+  };
+
+  const handleRuntimeMessage = (message, sender, sendResponse) => {
+    if (!message || typeof message.type !== "string" || !message.type.startsWith("YSC_")) {
+      return false;
+    }
+
+    if (message.type === "YSC_GET_STATE") {
+      sendResponse({ ok: true, state: collectState() });
+      return true;
+    }
+
+    if (message.type === "YSC_SET_RATE") {
+      applyRate(message.rate, {
+        notify: true,
+        notifyAlways: true
+      });
+      sendResponse({ ok: true, state: collectState() });
+      return true;
+    }
+
+    if (message.type === "YSC_MOVE_RATE") {
+      moveRate(Number(message.direction) > 0 ? 1 : -1, { notify: true });
+      sendResponse({ ok: true, state: collectState() });
+      return true;
+    }
+
+    if (message.type === "YSC_UPDATE_SETTING") {
+      const updated = updateExtensionSetting(message.key, message.value);
+      sendResponse({ ok: updated, state: collectState() });
+      return true;
+    }
+
+    if (message.type === "YSC_UPDATE_SHORTCUTS") {
+      shortcuts = normalizeShortcuts(message.shortcuts);
+      saveSetting(STORAGE_KEYS.shortcuts, shortcuts);
+      sendResponse({ ok: true, state: collectState() });
+      return true;
+    }
+
+    if (message.type === "YSC_RESET_SHORTCUTS") {
+      shortcuts = normalizeShortcuts({});
+      saveSetting(STORAGE_KEYS.shortcuts, shortcuts);
+      sendResponse({ ok: true, state: collectState() });
+      return true;
+    }
+
+    if (message.type === "YSC_SET_SITE_DISABLED") {
+      updateSitePolicy({ disabled: Boolean(message.disabled) });
+      refresh();
+      sendResponse({ ok: true, state: collectState() });
+      return true;
+    }
+
+    if (message.type === "YSC_SET_SITE_NATIVE_MODE") {
+      const mode = message.mode === "default"
+        ? null
+        : (message.mode === "override" || message.mode === "sync" ? message.mode : null);
+
+      updateSitePolicy({
+        nativeMode: mode
+      });
+      refresh();
+      sendResponse({ ok: true, state: collectState() });
+      return true;
+    }
+
+    if (message.type === "YSC_SET_SITE_ACCESS_LIST") {
+      siteAccessMode = ["all", "whitelist", "blacklist"].includes(message.mode) ? message.mode : "all";
+      siteAccessList = normalizeAccessList(message.hosts);
+      saveSetting(STORAGE_KEYS.siteAccessMode, siteAccessMode);
+      saveSetting(STORAGE_KEYS.siteAccessList, siteAccessList);
+      refresh();
+      sendResponse({ ok: true, state: collectState() });
+      return true;
+    }
+
+    return false;
+  };
+
+  if (typeof chrome !== "undefined" && chrome.runtime?.onMessage) {
+    chrome.runtime.onMessage.addListener(handleRuntimeMessage);
+  }
+
   const scheduleRefresh = () => {
     if (mutationTimer) {
       return;
@@ -706,27 +2473,115 @@
     }, 250);
   };
 
+  const handlePointerMove = (event) => {
+    if (pointerMoveTimer) {
+      return;
+    }
+
+    pointerMoveTimer = window.requestAnimationFrame(() => {
+      pointerMoveTimer = 0;
+      lastPointerClientX = event.clientX;
+      lastPointerClientY = event.clientY;
+      const path = event.composedPath();
+      const hovered = path.find((node) => node instanceof HTMLVideoElement && isVideoUsable(node));
+
+      lastPointerVideo = hovered || lastPointerVideo;
+      updateFloatingHoverFromClientPoint(lastPointerClientX, lastPointerClientY);
+    });
+  };
+
+  const hookHistory = () => {
+    const schedule = () => scheduleRefresh();
+
+    window.addEventListener("popstate", schedule);
+
+    ["pushState", "replaceState"].forEach((method) => {
+      const original = history[method];
+
+      if (typeof original !== "function") {
+        return;
+      }
+
+      history[method] = function patched(...args) {
+        const result = original.apply(this, args);
+
+        schedule();
+        return result;
+      };
+    });
+  };
+
   const start = async () => {
     const settings = await readStoredSettings();
 
     preferredRate = settings.rate;
+    extensionEnabled = settings.enabled;
     widgetHidden = settings.widgetHidden;
     toastHidden = settings.toastHidden;
+    keyboardEnabled = settings.keyboardEnabled;
+    mouseWheelEnabled = settings.mouseWheelEnabled;
+    boostEnabled = settings.boostEnabled;
+    rememberPerChannel = settings.rememberPerChannel;
+    rememberGlobally = settings.rememberGlobally;
+    rememberPerSite = settings.rememberPerSite;
+    autoApplyPreferredSpeed = settings.autoApplyPreferredSpeed;
+    compactMode = settings.compactMode;
+    fullscreenOnlyControls = settings.fullscreenOnlyControls;
+    themeMode = settings.themeMode;
+    startupDefaultSpeed = settings.startupDefaultSpeed;
+    shortcuts = settings.shortcuts;
+    channelRates = settings.channelRates;
+    analytics = settings.analytics;
+    sitePolicies = settings.sitePolicies;
+    siteAccessMode = settings.siteAccessMode;
+    siteAccessList = settings.siteAccessList;
+    defaultNativeMode = settings.defaultNativeMode;
+
+    observedShadowRoots = new WeakSet();
+    rootObserver = new MutationObserver(scheduleRefresh);
+    rootObserver.observe(document.documentElement, {
+      childList: true,
+      subtree: true
+    });
 
     refresh();
 
     window.addEventListener("keydown", handleKeyboardShortcut, true);
     window.addEventListener("keyup", handleKeyUp, true);
     window.addEventListener("blur", stopTemporaryBoost, true);
+    window.addEventListener("blur", stopSpeedHold, true);
+    window.addEventListener("blur", () => {
+      if (widgetPlacement !== "floating") {
+        return;
+      }
+
+      clearFloatingHideTimer();
+      floatingHoverActive = false;
+      applyFloatingAmbientClass();
+    }, true);
+    window.addEventListener("mouseup", stopSpeedHold, true);
+    window.addEventListener("touchend", stopSpeedHold, true);
     window.addEventListener("wheel", handleWheel, { capture: true, passive: false });
+    window.addEventListener("pointermove", handlePointerMove, true);
+    window.addEventListener("fullscreenchange", () => {
+      applyFloatingPresentation();
+      updateWidgetVisibility();
+      updateFloatingHoverFromClientPoint(lastPointerClientX, lastPointerClientY);
+    });
+    window.addEventListener("resize", () => {
+      window.clearTimeout(themeSampleTimer);
+      themeSampleTimer = window.setTimeout(() => {
+        applyFloatingPresentation();
+        updateFloatingHoverFromClientPoint(lastPointerClientX, lastPointerClientY);
+      }, 120);
+    });
+    window.addEventListener("beforeunload", saveAnalytics);
     document.addEventListener("yt-navigate-finish", scheduleRefresh);
     document.addEventListener("yt-player-updated", scheduleRefresh);
-
-    const observer = new MutationObserver(scheduleRefresh);
-    observer.observe(document.documentElement, {
-      childList: true,
-      subtree: true
-    });
+    document.addEventListener("enterpictureinpicture", scheduleRefresh, true);
+    document.addEventListener("leavepictureinpicture", scheduleRefresh, true);
+    window.setInterval(trackAnalytics, 1000);
+    hookHistory();
   };
 
   start();
