@@ -514,7 +514,7 @@
     const current = asPlainObject(sitePolicies[host]);
     const next = { ...current, ...partial };
     const empty = !next.disabled
-      && next.preferredRate == null
+      && (next.preferredRate === null || next.preferredRate === undefined)
       && (next.nativeMode == null || next.nativeMode === "");
 
     if (empty) {
@@ -587,7 +587,9 @@
     }, 100);
   };
 
-  const collectVideosFromRoot = (root, bucket) => {
+  let lastDeepScanAt = 0;
+
+  const collectVideosFromRoot = (root, bucket, deepScan = false) => {
     if (!root || !root.querySelectorAll) {
       return;
     }
@@ -596,19 +598,29 @@
       bucket.add(video);
     });
 
+    if (!deepScan) {
+      return;
+    }
+
     root.querySelectorAll("*").forEach((element) => {
       if (element.shadowRoot && !observedShadowRoots.has(element.shadowRoot)) {
         observedShadowRoots.add(element.shadowRoot);
         rootObserver?.observe(element.shadowRoot, { childList: true, subtree: true });
-        collectVideosFromRoot(element.shadowRoot, bucket);
+        collectVideosFromRoot(element.shadowRoot, bucket, deepScan);
       }
     });
   };
 
   const syncVideoRegistry = () => {
     const next = new Set();
+    const now = performance.now();
+    const deepScan = (now - lastDeepScanAt) > 5000;
 
-    collectVideosFromRoot(document, next);
+    if (deepScan) {
+      lastDeepScanAt = now;
+    }
+
+    collectVideosFromRoot(document, next, deepScan);
 
     for (const video of videoRegistry) {
       if (video.isConnected) {
@@ -663,7 +675,7 @@
 
   const pickLargestVideo = (videos) => {
     let best = null;
-    let bestScore = 0;
+    let bestScore = -1;
 
     for (const video of videos) {
       const score = videoVisibleScore(video);
@@ -1001,6 +1013,10 @@
   };
 
   const getVideo = () => {
+    if (activeVideo && isVideoUsable(activeVideo)) {
+      return activeVideo;
+    }
+
     if (isYouTubeHost()) {
       const yt = getYouTubeVideo();
 
@@ -1941,7 +1957,6 @@
     const changedRateKey = getRateKey(changedRate);
 
     if (pendingProgrammaticRates.has(changedRateKey)) {
-      pendingProgrammaticRates.delete(changedRateKey);
       updateWidget(changedRate);
       return;
     }
@@ -2707,7 +2722,7 @@
     mutationTimer = window.setTimeout(() => {
       mutationTimer = 0;
       refresh();
-    }, 250);
+    }, 500);
   };
 
   const handlePointerMove = (event) => {
@@ -2748,24 +2763,37 @@
   };
 
   const hookHistory = () => {
-    const schedule = () => scheduleRefresh();
+    try {
+      const script = document.createElement("script");
+      script.textContent = `
+        (() => {
+          const notify = () => window.postMessage({ type: "YSC_SPA_NAVIGATE" }, "*");
+          const patch = (method) => {
+            const orig = history[method];
+            if (typeof orig === "function") {
+              history[method] = function(...args) {
+                const res = orig.apply(this, args);
+                notify();
+                return res;
+              };
+            }
+          };
+          patch("pushState");
+          patch("replaceState");
+          window.addEventListener("popstate", notify);
+        })();
+      `;
+      (document.head || document.documentElement).appendChild(script);
+      script.remove();
 
-    window.addEventListener("popstate", schedule);
-
-    ["pushState", "replaceState"].forEach((method) => {
-      const original = history[method];
-
-      if (typeof original !== "function") {
-        return;
-      }
-
-      history[method] = function patched(...args) {
-        const result = original.apply(this, args);
-
-        schedule();
-        return result;
-      };
-    });
+      window.addEventListener("message", (event) => {
+        if (event.source === window && event.data?.type === "YSC_SPA_NAVIGATE") {
+          scheduleRefresh();
+        }
+      });
+    } catch (error) {
+      // Ignore injection errors
+    }
   };
 
   const applyStoredSettings = (settings) => {
