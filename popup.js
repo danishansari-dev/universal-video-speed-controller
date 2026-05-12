@@ -136,7 +136,8 @@ const sendMessage = (message) => new Promise((resolve) => {
     return;
   }
 
-  chrome.tabs.sendMessage(activeTabId, message, (response) => {
+  // Target the main frame (frameId: 0) to avoid iframes responding first
+  chrome.tabs.sendMessage(activeTabId, message, { frameId: 0 }, (response) => {
     if (chrome.runtime.lastError || !response?.ok) {
       resolve(null);
       return;
