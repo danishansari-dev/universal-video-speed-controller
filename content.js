@@ -9,24 +9,54 @@
 
   window[SCRIPT_INSTANCE_KEY] = true;
 
-  const STORAGE_KEY = "youtubeSpeedController.playbackRate";
+  const STORAGE_KEYS = {
+    rate: "youtubeSpeedController.playbackRate",
+    widgetHidden: "youtubeSpeedController.widgetHidden",
+    toastHidden: "youtubeSpeedController.toastHidden"
+  };
+
   const EPSILON = 0.01;
   const SPEED_STEP = 0.25;
   const MIN_PLAYBACK_RATE = 0.25;
   const MAX_PLAYBACK_RATE = 10;
+  const BOOST_RATE = 2;
+  const TOAST_TIMEOUT_MS = 900;
+  const WHEEL_THROTTLE_MS = 120;
   const SPEEDS = Array.from(
     { length: Math.round((MAX_PLAYBACK_RATE - MIN_PLAYBACK_RATE) / SPEED_STEP) + 1 },
     (_, index) => Number((MIN_PLAYBACK_RATE + (index * SPEED_STEP)).toFixed(2))
   );
+  const PRESET_RATES = {
+    Digit1: 1,
+    Digit2: 2,
+    Digit3: 3,
+    Digit4: 4,
+    Digit5: 5,
+    Digit0: 10,
+    Numpad1: 1,
+    Numpad2: 2,
+    Numpad3: 3,
+    Numpad4: 4,
+    Numpad5: 5,
+    Numpad0: 10
+  };
 
   let preferredRate = 1;
+  let widgetHidden = false;
+  let toastHidden = false;
   let widget = null;
   let toast = null;
-  let toastRateText = null;
+  let toastLabelText = null;
+  let toastValueText = null;
   let activeVideo = null;
   let mutationTimer = 0;
   let saveTimer = 0;
   let toastTimer = 0;
+  let pendingProgrammaticRates = new Set();
+  let pendingProgrammaticTimer = 0;
+  let lastWheelAt = 0;
+  let isBoosting = false;
+  let boostRestoreRate = null;
 
   const getChromeStorage = () => {
     if (typeof chrome === "undefined" || !chrome.storage?.local) {
@@ -54,48 +84,102 @@
     return `${String(normalized).replace(/\.?0+$/, "")}x`;
   };
 
-  const readStoredRate = () => new Promise((resolve) => {
+  const readStoredSettings = () => new Promise((resolve) => {
     const storage = getChromeStorage();
 
     if (!storage) {
-      resolve(1);
+      resolve({
+        rate: 1,
+        widgetHidden: false,
+        toastHidden: false
+      });
       return;
     }
 
-    storage.get(STORAGE_KEY, (result) => {
+    storage.get(Object.values(STORAGE_KEYS), (result) => {
       if (chrome.runtime?.lastError) {
-        resolve(1);
+        resolve({
+          rate: 1,
+          widgetHidden: false,
+          toastHidden: false
+        });
         return;
       }
 
-      resolve(normalizePlaybackRate(result[STORAGE_KEY]));
+      resolve({
+        rate: normalizePlaybackRate(result[STORAGE_KEYS.rate]),
+        widgetHidden: result[STORAGE_KEYS.widgetHidden] === true,
+        toastHidden: result[STORAGE_KEYS.toastHidden] === true
+      });
     });
   });
 
-  const savePreferredRate = (rate) => {
+  const saveSetting = (key, value) => {
     const storage = getChromeStorage();
 
     if (!storage) {
       return;
     }
 
+    storage.set({ [key]: value });
+  };
+
+  const savePreferredRate = (rate) => {
     window.clearTimeout(saveTimer);
     saveTimer = window.setTimeout(() => {
-      storage.set({ [STORAGE_KEY]: normalizePlaybackRate(rate) });
+      saveSetting(STORAGE_KEYS.rate, normalizePlaybackRate(rate));
     }, 100);
   };
 
-  const getPlayer = () => document.querySelector(".html5-video-player");
+  const getPlayer = () => {
+    const players = Array.from(document.querySelectorAll(".html5-video-player"));
+
+    return players.find((player) => {
+      const video = player.querySelector("video.html5-main-video, video");
+      const rect = player.getBoundingClientRect();
+
+      return video && rect.width > 0 && rect.height > 0;
+    }) || null;
+  };
 
   const getVideo = () => {
     const player = getPlayer();
 
-    return player?.querySelector("video.html5-main-video")
-      || document.querySelector("video.html5-main-video")
-      || document.querySelector("video");
+    return player?.querySelector("video.html5-main-video, video") || null;
   };
 
-  const showSpeedToast = (rate) => {
+  const hasActiveVideoPlayer = () => {
+    const player = getPlayer();
+    const video = player?.querySelector("video.html5-main-video, video");
+    const rect = video?.getBoundingClientRect();
+
+    return Boolean(player && video && rect && rect.width > 0 && rect.height > 0);
+  };
+
+  const ensureToast = () => {
+    if (toast) {
+      return;
+    }
+
+    toast = document.createElement("div");
+    toast.className = "ysc-speed-toast";
+    toast.setAttribute("role", "status");
+    toast.setAttribute("aria-live", "polite");
+
+    toastLabelText = document.createElement("span");
+    toastLabelText.className = "ysc-speed-toast-label";
+
+    toastValueText = document.createElement("span");
+    toastValueText.className = "ysc-speed-toast-rate";
+
+    toast.append(toastLabelText, toastValueText);
+  };
+
+  const showToast = ({ label = "Speed", value, force = false }) => {
+    if (toastHidden && !force) {
+      return;
+    }
+
     const player = getPlayer();
     const parent = player || document.body;
 
@@ -103,36 +187,35 @@
       return;
     }
 
-    if (!toast) {
-      toast = document.createElement("div");
-      toast.className = "ysc-speed-toast";
-      toast.setAttribute("role", "status");
-      toast.setAttribute("aria-live", "polite");
-
-      const label = document.createElement("span");
-      label.className = "ysc-speed-toast-label";
-      label.textContent = "Speed";
-
-      toastRateText = document.createElement("span");
-      toastRateText.className = "ysc-speed-toast-rate";
-
-      toast.append(label, toastRateText);
-    }
+    ensureToast();
 
     if (toast.parentElement !== parent) {
       parent.append(toast);
     }
 
-    toastRateText.textContent = formatRate(rate);
+    toastLabelText.textContent = label;
+    toastValueText.textContent = value;
     toast.classList.add("ysc-speed-toast-visible");
 
     window.clearTimeout(toastTimer);
     toastTimer = window.setTimeout(() => {
       toast?.classList.remove("ysc-speed-toast-visible");
-    }, 900);
+    }, TOAST_TIMEOUT_MS);
   };
 
-  const updateWidget = (rate = preferredRate) => {
+  const showSpeedToast = (rate, { label = "Speed", force = false } = {}) => {
+    showToast({
+      label,
+      value: formatRate(rate),
+      force
+    });
+  };
+
+  const updateWidgetVisibility = () => {
+    widget?.classList.toggle("ysc-speed-widget-hidden", widgetHidden);
+  };
+
+  const updateWidget = (rate = getCurrentRate()) => {
     if (!widget) {
       return;
     }
@@ -146,18 +229,56 @@
 
     widget.querySelector(".ysc-speed-decrease").disabled = rate <= SPEEDS[0] + EPSILON;
     widget.querySelector(".ysc-speed-increase").disabled = rate >= SPEEDS[SPEEDS.length - 1] - EPSILON;
+    updateWidgetVisibility();
   };
 
-  const applyRate = (rate, { persist = true, notify = false } = {}) => {
+  const getRateKey = (rate) => normalizePlaybackRate(rate).toFixed(2);
+
+  const markProgrammaticRate = (rate) => {
+    pendingProgrammaticRates.add(getRateKey(rate));
+    window.clearTimeout(pendingProgrammaticTimer);
+    pendingProgrammaticTimer = window.setTimeout(() => {
+      pendingProgrammaticRates = new Set();
+    }, 500);
+  };
+
+  const setVideoRate = (video, rate) => {
+    markProgrammaticRate(rate);
+
+    try {
+      video.playbackRate = rate;
+      return true;
+    } catch {
+      pendingProgrammaticRates.delete(getRateKey(rate));
+      return false;
+    }
+  };
+
+  const applyRate = (
+    rate,
+    {
+      persist = true,
+      notify = false,
+      notifyAlways = false,
+      label = "Speed",
+      forceToast = false
+    } = {}
+  ) => {
     const nextRate = normalizePlaybackRate(rate);
     const video = getVideo();
     const currentRate = normalizePlaybackRate(video?.playbackRate || preferredRate);
     const changed = Math.abs(currentRate - nextRate) > EPSILON;
 
-    preferredRate = nextRate;
+    if (!video && !persist) {
+      return false;
+    }
 
-    if (video && changed) {
-      video.playbackRate = nextRate;
+    if (persist) {
+      preferredRate = nextRate;
+    }
+
+    if (video && changed && !setVideoRate(video, nextRate)) {
+      return false;
     }
 
     updateWidget(nextRate);
@@ -166,8 +287,8 @@
       savePreferredRate(nextRate);
     }
 
-    if (notify && changed) {
-      showSpeedToast(nextRate);
+    if (notify && (changed || notifyAlways)) {
+      showSpeedToast(nextRate, { label, force: forceToast });
     }
 
     return changed;
@@ -272,10 +393,8 @@
       if (settingsButton.previousElementSibling !== widget) {
         rightControls.insertBefore(widget, settingsButton);
       }
-    } else {
-      if (widget.parentElement !== rightControls || widget.nextElementSibling) {
-        rightControls.append(widget);
-      }
+    } else if (widget.parentElement !== rightControls || widget.nextElementSibling) {
+      rightControls.append(widget);
     }
 
     updateWidget(getCurrentRate());
@@ -289,6 +408,15 @@
     }
 
     const changedRate = normalizePlaybackRate(video.playbackRate);
+
+    const changedRateKey = getRateKey(changedRate);
+
+    if (pendingProgrammaticRates.has(changedRateKey)) {
+      pendingProgrammaticRates.delete(changedRateKey);
+      updateWidget(changedRate);
+      return;
+    }
+
     const changed = Math.abs(preferredRate - changedRate) > EPSILON;
 
     preferredRate = changedRate;
@@ -301,7 +429,7 @@
   };
 
   const enforcePreferredRate = () => {
-    applyRate(preferredRate, { persist: false });
+    applyRate(isBoosting ? BOOST_RATE : preferredRate, { persist: false });
   };
 
   const watchVideo = () => {
@@ -358,8 +486,23 @@
     return event.composedPath().some(isEditableElement);
   };
 
+  const consumeEvent = (event) => {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  };
+
+  const isShiftOnly = (event) => event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey;
+
+  const isPlainKey = (event, code, key) => {
+    if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey || event.isComposing) {
+      return false;
+    }
+
+    return event.code === code || (event.key || "").toLowerCase() === key;
+  };
+
   const getShortcutDirection = (event) => {
-    if (!event.shiftKey || event.ctrlKey || event.altKey || event.metaKey || event.isComposing) {
+    if (!isShiftOnly(event) || event.isComposing) {
       return 0;
     }
 
@@ -374,16 +517,182 @@
     return 0;
   };
 
-  const handleKeyboardShortcut = (event) => {
-    const direction = getShortcutDirection(event);
+  const getPresetRate = (event) => {
+    if (!event.altKey || event.shiftKey || event.ctrlKey || event.metaKey || event.isComposing) {
+      return null;
+    }
 
-    if (!direction || isTypingContext(event) || !getVideo()) {
+    return PRESET_RATES[event.code] ?? null;
+  };
+
+  const isResetShortcut = (event) => isShiftOnly(event)
+    && !event.isComposing
+    && event.code === "Backspace";
+
+  const isWidgetToggleShortcut = (event) => isShiftOnly(event)
+    && !event.isComposing
+    && (event.code === "KeyS" || (event.key || "").toLowerCase() === "s");
+
+  const isToastToggleShortcut = (event) => isShiftOnly(event)
+    && !event.isComposing
+    && (event.code === "KeyH" || (event.key || "").toLowerCase() === "h");
+
+  const isBoostKey = (event) => isPlainKey(event, "KeyX", "x");
+
+  const isBoostReleaseKey = (event) => event.code === "KeyX" || (event.key || "").toLowerCase() === "x";
+
+  const startTemporaryBoost = () => {
+    if (isBoosting) {
       return;
     }
 
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    moveRate(direction, { notify: true });
+    isBoosting = true;
+    boostRestoreRate = getCurrentRate();
+    applyRate(BOOST_RATE, {
+      persist: false,
+      notify: true,
+      notifyAlways: true,
+      label: "Boost"
+    });
+  };
+
+  const stopTemporaryBoost = () => {
+    if (!isBoosting) {
+      return;
+    }
+
+    const restoreRate = boostRestoreRate ?? preferredRate;
+
+    isBoosting = false;
+    boostRestoreRate = null;
+    applyRate(restoreRate, {
+      persist: false,
+      notify: true
+    });
+  };
+
+  const toggleWidgetVisibility = () => {
+    widgetHidden = !widgetHidden;
+    updateWidgetVisibility();
+    saveSetting(STORAGE_KEYS.widgetHidden, widgetHidden);
+    showToast({
+      label: "Widget",
+      value: widgetHidden ? "Off" : "On",
+      force: true
+    });
+  };
+
+  const toggleToastVisibility = () => {
+    toastHidden = !toastHidden;
+    saveSetting(STORAGE_KEYS.toastHidden, toastHidden);
+    showToast({
+      label: "Overlay",
+      value: toastHidden ? "Off" : "On",
+      force: true
+    });
+  };
+
+  const handleKeyboardShortcut = (event) => {
+    if (isTypingContext(event) || !hasActiveVideoPlayer()) {
+      return;
+    }
+
+    if (isBoostKey(event)) {
+      consumeEvent(event);
+
+      if (!event.repeat) {
+        startTemporaryBoost();
+      }
+
+      return;
+    }
+
+    const direction = getShortcutDirection(event);
+
+    if (direction) {
+      consumeEvent(event);
+      moveRate(direction, { notify: true });
+      return;
+    }
+
+    const presetRate = getPresetRate(event);
+
+    if (presetRate !== null) {
+      consumeEvent(event);
+
+      if (!event.repeat) {
+        applyRate(presetRate, {
+          notify: true,
+          notifyAlways: true
+        });
+      }
+
+      return;
+    }
+
+    if (isResetShortcut(event)) {
+      consumeEvent(event);
+
+      if (!event.repeat) {
+        applyRate(1, {
+          notify: true,
+          notifyAlways: true,
+          label: "Reset"
+        });
+      }
+
+      return;
+    }
+
+    if (isWidgetToggleShortcut(event)) {
+      consumeEvent(event);
+
+      if (!event.repeat) {
+        toggleWidgetVisibility();
+      }
+
+      return;
+    }
+
+    if (isToastToggleShortcut(event)) {
+      consumeEvent(event);
+
+      if (!event.repeat) {
+        toggleToastVisibility();
+      }
+    }
+  };
+
+  const handleKeyUp = (event) => {
+    if (!isBoosting || !isBoostReleaseKey(event)) {
+      return;
+    }
+
+    consumeEvent(event);
+    stopTemporaryBoost();
+  };
+
+  const handleWheel = (event) => {
+    if (!event.ctrlKey || event.altKey || event.metaKey || event.shiftKey || event.deltaY === 0) {
+      return;
+    }
+
+    const player = getPlayer();
+
+    if (!player || isTypingContext(event) || !event.composedPath().includes(player)) {
+      return;
+    }
+
+    consumeEvent(event);
+
+    const now = performance.now();
+
+    if (now - lastWheelAt < WHEEL_THROTTLE_MS) {
+      return;
+    }
+
+    lastWheelAt = now;
+    moveRate(event.deltaY < 0 ? 1 : -1, { notify: true });
   };
 
   const scheduleRefresh = () => {
@@ -398,10 +707,18 @@
   };
 
   const start = async () => {
-    preferredRate = await readStoredRate();
+    const settings = await readStoredSettings();
+
+    preferredRate = settings.rate;
+    widgetHidden = settings.widgetHidden;
+    toastHidden = settings.toastHidden;
+
     refresh();
 
     window.addEventListener("keydown", handleKeyboardShortcut, true);
+    window.addEventListener("keyup", handleKeyUp, true);
+    window.addEventListener("blur", stopTemporaryBoost, true);
+    window.addEventListener("wheel", handleWheel, { capture: true, passive: false });
     document.addEventListener("yt-navigate-finish", scheduleRefresh);
     document.addEventListener("yt-player-updated", scheduleRefresh);
 
