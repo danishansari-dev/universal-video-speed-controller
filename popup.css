@@ -594,6 +594,17 @@ h2 {
   color: var(--text);
   font-size: 11px;
   padding: 5px 9px;
+  border-radius: 9px;
+  transition: background .14s ease, border-color .14s ease, color .14s ease;
+}
+
+.ghost-button:hover {
+  background: var(--control-bg-hover);
+  border-color: var(--muted);
+}
+
+.ghost-button:active {
+  background: var(--control-bg-active);
 }
 
 .search-wrap {
@@ -610,8 +621,14 @@ h2 {
   color: var(--text);
   min-width: 0;
   outline: 0;
-  padding: 8px 10px;
+  padding: 8px 12px;
   width: 100%;
+  transition: border-color .14s ease, box-shadow .14s ease;
+}
+
+.search-wrap input:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(255, 0, 51, .15);
 }
 
 .conflict-warning {
@@ -622,9 +639,9 @@ h2 {
 
 .shortcut-list {
   display: grid;
-  gap: 7px;
-  max-height: 184px;
-  overflow: auto;
+  gap: 8px;
+  max-height: 375px;
+  overflow-y: auto;
   padding-right: 2px;
 }
 
@@ -632,11 +649,17 @@ h2 {
   align-items: center;
   background: var(--control-bg);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 14px;
   display: grid;
   gap: 8px;
   grid-template-columns: 1fr auto;
-  padding: 8px;
+  padding: 10px 14px;
+  transition: border-color .14s ease, background-color .14s ease, transform .14s ease;
+}
+
+.shortcut-card:hover {
+  background: var(--panel-strong);
+  border-color: var(--soft);
 }
 
 .shortcut-card.conflict {
@@ -645,28 +668,52 @@ h2 {
 
 .shortcut-card strong {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .shortcut-card span {
   color: var(--muted);
   display: block;
   font-size: 10px;
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 .keycap {
   background: var(--control-bg);
   border: 1px solid var(--line);
+  border-bottom: 3px solid var(--line);
   border-radius: 9px;
   color: var(--text);
   min-width: 72px;
-  padding: 6px 8px;
+  padding: 6px 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .15);
+  transition: all .1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.keycap:hover {
+  background: var(--control-bg-hover);
+  border-bottom-width: 3px;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, .2);
+}
+
+.keycap:active {
+  background: var(--control-bg-active);
+  border-bottom-width: 1px;
+  transform: translateY(2px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
 }
 
 .keycap.recording {
   animation: pulseKey .9s ease-in-out infinite;
   color: #fff;
+  border-color: var(--red);
+  border-bottom-color: var(--red-2);
 }
 
 .analytics-grid {
@@ -810,10 +857,12 @@ h2 {
 
 @keyframes pulseKey {
   0%, 100% {
-    background: rgba(255, 0, 51, .28);
+    background: rgba(255, 0, 51, .36);
+    box-shadow: 0 0 0 0 rgba(255, 0, 51, 0.4), 0 2px 4px rgba(0, 0, 0, .15);
   }
   50% {
-    background: rgba(255, 75, 98, .48);
+    background: rgba(255, 75, 98, .62);
+    box-shadow: 0 0 0 5px rgba(255, 0, 51, 0), 0 2px 4px rgba(0, 0, 0, .15);
   }
 }
 
