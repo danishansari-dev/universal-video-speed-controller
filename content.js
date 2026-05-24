@@ -236,7 +236,7 @@
    */
   const formatRate = (rate) => {
     const normalized = normalizePlaybackRate(rate);
-    return `${String(normalized).replace(/\.?0+$/, "")}x`;
+    return `${String(Number(normalized.toFixed(2)))}x`;
   };
 
   /**
