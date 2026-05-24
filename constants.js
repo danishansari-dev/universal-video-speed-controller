@@ -75,7 +75,7 @@ const YSC_FORMAT_RATE = (rate) => {
     Math.max(YSC_MIN_PLAYBACK_RATE, Math.round(Number(rate) / YSC_SPEED_STEP) * YSC_SPEED_STEP)
   );
 
-  return `${String(clamped).replace(/\.?0+$/, "")}x`;
+  return `${String(Number(clamped.toFixed(2)))}x`;
 };
 
 // Expose to globalThis so content scripts (running inside an IIFE) can access them
