@@ -582,7 +582,12 @@
       const storage = getChromeStorage();
 
       if (storage && Object.keys(nextStorage).length) {
-        storage.set(nextStorage);
+        // Wrapped in try/catch to handle "Extension context invalidated" after reload
+        try {
+          storage.set(nextStorage);
+        } catch {
+          // Extension was reloaded — this content script is orphaned, ignore silently
+        }
       }
     }, 100);
   };
