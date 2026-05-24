@@ -36,8 +36,8 @@ The popup includes:
 
 | Shortcut | Action |
 | --- | --- |
-| `]` | Increase speed by `0.25x` |
-| `[` | Decrease speed by `0.25x` |
+| `]` or `Shift + .` | Increase speed by `0.25x` |
+| `[` or `Shift + ,` | Decrease speed by `0.25x` |
 | `Alt + 1` | Set speed to `1x` |
 | `Alt + 2` | Set speed to `2x` |
 | `Alt + 3` | Set speed to `3x` |
