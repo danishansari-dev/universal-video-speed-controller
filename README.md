@@ -36,15 +36,15 @@ The popup includes:
 
 | Shortcut | Action |
 | --- | --- |
-| `Shift + .` | Increase speed by `0.25x` |
-| `Shift + ,` | Decrease speed by `0.25x` |
+| `]` | Increase speed by `0.25x` |
+| `[` | Decrease speed by `0.25x` |
 | `Alt + 1` | Set speed to `1x` |
 | `Alt + 2` | Set speed to `2x` |
 | `Alt + 3` | Set speed to `3x` |
 | `Alt + 4` | Set speed to `4x` |
 | `Alt + 5` | Set speed to `5x` |
 | `Alt + 0` | Set speed to `10x` |
-| `Shift + Backspace` | Reset speed to `1x` |
+| `\` | Reset speed to `1x` |
 | Hold `X` | Temporarily boost to `2x`; release to restore |
 | `Shift + S` | Toggle the floating widget |
 | `Shift + H` | Toggle the speed overlay |
