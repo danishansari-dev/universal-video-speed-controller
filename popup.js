@@ -31,7 +31,9 @@ const SETTING_DEFS = [
 ];
 const SHORTCUT_NAMES = {
   increase: "Increase speed",
+  increaseAlt: "Increase speed (alternative)",
   decrease: "Decrease speed",
+  decreaseAlt: "Decrease speed (alternative)",
   reset: "Reset speed",
   boost: "Temporary boost",
   widgetToggle: "Toggle widget",
