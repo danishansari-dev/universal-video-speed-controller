@@ -2762,38 +2762,23 @@
     });
   };
 
+  /**
+   * Sets up event listeners to respond to SPA routing events.
+   * 
+   * Why this code exists:
+   * The MAIN world script (inject.js) detects routing events and posts
+   * a window message. This function listens to those messages to trigger
+   * video detection refreshes in the isolated world.
+   * 
+   * @danishansari-dev - None
+   * @returns {void}
+   */
   const hookHistory = () => {
-    try {
-      const script = document.createElement("script");
-      script.textContent = `
-        (() => {
-          const notify = () => window.postMessage({ type: "YSC_SPA_NAVIGATE" }, "*");
-          const patch = (method) => {
-            const orig = history[method];
-            if (typeof orig === "function") {
-              history[method] = function(...args) {
-                const res = orig.apply(this, args);
-                notify();
-                return res;
-              };
-            }
-          };
-          patch("pushState");
-          patch("replaceState");
-          window.addEventListener("popstate", notify);
-        })();
-      `;
-      (document.head || document.documentElement).appendChild(script);
-      script.remove();
-
-      window.addEventListener("message", (event) => {
-        if (event.source === window && event.data?.type === "YSC_SPA_NAVIGATE") {
-          scheduleRefresh();
-        }
-      });
-    } catch (error) {
-      // Ignore injection errors
-    }
+    window.addEventListener("message", (event) => {
+      if (event.source === window && event.data?.type === "YSC_SPA_NAVIGATE") {
+        scheduleRefresh();
+      }
+    });
   };
 
   const applyStoredSettings = (settings) => {
