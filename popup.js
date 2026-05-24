@@ -206,6 +206,16 @@ const shortcutSignature = (shortcut) => [
   shortcut.code
 ].filter(Boolean).join("+");
 
+/**
+ * Generates a user-friendly string representation of a keydown event.
+ * 
+ * Why this code exists:
+ * Users customize key shortcuts via keypresses in the shortcut manager.
+ * This converts standard keyboard event parameters to clean visual representations.
+ * 
+ * @danishansari-dev event - The keyboard event object to translate.
+ * @returns {string} Formatted shortcut label (e.g. "Ctrl + Shift + [").
+ */
 const shortcutLabelFromEvent = (event) => {
   const parts = [];
 
@@ -219,7 +229,15 @@ const shortcutLabelFromEvent = (event) => {
     .replace(/^Digit/, "")
     .replace(/^Numpad/, "Num ");
 
-  parts.push(key === "Period" ? "." : key === "Comma" ? "," : key);
+  // Map specific technical key codes to standard user-friendly characters for display
+  parts.push(
+    key === "Period" ? "."
+    : key === "Comma" ? ","
+    : key === "BracketLeft" ? "["
+    : key === "BracketRight" ? "]"
+    : key === "Backslash" ? "\\"
+    : key
+  );
 
   return parts.join(" + ");
 };
