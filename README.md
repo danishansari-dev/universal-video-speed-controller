@@ -9,7 +9,7 @@ The extension adds a native-feeling floating speed widget on video players and a
 - Floating `- / speed / +` widget on detected HTML5 video players.
 - Speed range from `0.25x` to `10x` in `0.25x` steps.
 - Single-click speed changes and press-and-hold acceleration on the widget buttons.
-- YouTube-style centered speed overlay whenever playback speed changes.
+- Premium neutral frosted-glass speed overlay toast in the center of the video player with specular glare reflections, high background blur, and a dynamic progress slider whenever playback speed changes.
 - Modern toolbar popup with speed dial, presets, live video info, settings, shortcuts, and analytics.
 - Real-time sync with the active video when the popup is open.
 - Works with dynamically loaded players and single-page navigation.
@@ -93,6 +93,7 @@ This extension is built to meet startup-grade production standards, prioritizing
 - **High-Performance DOM Scanning**: Instead of periodic expensive `querySelectorAll("*")` deep scans that trigger CPU spikes and layout thrashing, a custom tree walker traverses the DOM while skipping layout-only nodes. It listens to event-driven mutations to observe shadow roots dynamically, reducing CPU usage to nearly 0%.
 - **Zero-Leak Lifecycle & Teardown**: To solve extension context invalidation errors and double-event registrations during hot reloads/updates, the script registers a global `__youtubeSpeedControllerCleanup` callback. It completely tears down previous handlers, MutationObservers, timers, and DOM nodes before starting the new instance.
 - **Smooth 60 FPS Layouts**: UI updates, coordinate recalculations, and obstacle avoidance checking (using corner penalties and overlapping rect areas) are debounced and batched using `requestAnimationFrame`.
+- **Compositing & Layout Glitch Mitigation**: Forcing hardware-accelerated GPU compositing (`transform: translate3d(0,0,0)`) on primary popup panels prevents Chromium subpixel layout rendering offsets on Windows. Additionally, block-level form fields and scrollbar-hidden containers prevent broken border-radius rendering artifacts.
 - **Fault-Tolerant Storage**: All storage queries and runtime actions are wrapped in error boundaries. If context invalidates after an extension reload, storage APIs degrade gracefully to defaults.
 
 
