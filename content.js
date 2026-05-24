@@ -422,34 +422,37 @@
       return;
     }
 
-    storage.get(Object.values(STORAGE_KEYS), (result) => {
-      if (chrome.runtime?.lastError) {
-        resolve({
-          rate: 1,
-          enabled: true,
-          widgetHidden: false,
-          toastHidden: false,
-          keyboardEnabled: true,
-          mouseWheelEnabled: true,
-          boostEnabled: true,
-          rememberPerChannel: false,
-          rememberGlobally: true,
-          rememberPerSite: true,
-          autoApplyPreferredSpeed: true,
-          compactMode: false,
-          fullscreenOnlyControls: false,
-          themeMode: "auto",
-          startupDefaultSpeed: 1,
-          shortcuts: normalizeShortcuts({}),
-          channelRates: {},
-          analytics: normalizeAnalytics({}),
-          sitePolicies: {},
-          siteAccessMode: "all",
-          siteAccessList: [],
-          defaultNativeMode: "override"
-        });
-        return;
-      }
+    // Wrapped in try/catch because storage.get() throws synchronously
+    // when the extension context has been invalidated after a reload
+    try {
+      storage.get(Object.values(STORAGE_KEYS), (result) => {
+        if (chrome.runtime?.lastError) {
+          resolve({
+            rate: 1,
+            enabled: true,
+            widgetHidden: false,
+            toastHidden: false,
+            keyboardEnabled: true,
+            mouseWheelEnabled: true,
+            boostEnabled: true,
+            rememberPerChannel: false,
+            rememberGlobally: true,
+            rememberPerSite: true,
+            autoApplyPreferredSpeed: true,
+            compactMode: false,
+            fullscreenOnlyControls: false,
+            themeMode: "auto",
+            startupDefaultSpeed: 1,
+            shortcuts: normalizeShortcuts({}),
+            channelRates: {},
+            analytics: normalizeAnalytics({}),
+            sitePolicies: {},
+            siteAccessMode: "all",
+            siteAccessList: [],
+            defaultNativeMode: "override"
+          });
+          return;
+        }
 
       resolve({
         rate: normalizePlaybackRate(result[STORAGE_KEYS.rate]),
@@ -482,7 +485,34 @@
           ? result[STORAGE_KEYS.defaultNativeMode]
           : "override"
       });
-    });
+      });
+    } catch {
+      // Extension context was invalidated after reload — fall back to defaults
+      resolve({
+        rate: 1,
+        enabled: true,
+        widgetHidden: false,
+        toastHidden: false,
+        keyboardEnabled: true,
+        mouseWheelEnabled: true,
+        boostEnabled: true,
+        rememberPerChannel: false,
+        rememberGlobally: true,
+        rememberPerSite: true,
+        autoApplyPreferredSpeed: true,
+        compactMode: false,
+        fullscreenOnlyControls: false,
+        themeMode: "auto",
+        startupDefaultSpeed: 1,
+        shortcuts: normalizeShortcuts({}),
+        channelRates: {},
+        analytics: normalizeAnalytics({}),
+        sitePolicies: {},
+        siteAccessMode: "all",
+        siteAccessList: [],
+        defaultNativeMode: "override"
+      });
+    }
   });
 
   const saveSetting = (key, value) => {
