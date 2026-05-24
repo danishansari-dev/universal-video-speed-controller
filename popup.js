@@ -77,7 +77,6 @@ const els = {
   sessionAverage: $("#sessionAverage"),
   defaultNativeMode: $("#defaultNativeMode"),
   siteDomainLabel: $("#siteDomainLabel"),
-  siteActiveToggle: $("#siteActiveToggle"),
   siteNativeMode: $("#siteNativeMode"),
   accessModeSelect: $("#accessModeSelect"),
   accessListInput: $("#accessListInput"),
@@ -358,7 +357,7 @@ const renderShortcuts = () => {
 const renderTheme = () => {
   const mode = state?.settings?.themeMode || "auto";
 
-  appShell.dataset.theme = mode;
+  document.documentElement.dataset.theme = mode;
   document.querySelectorAll("[data-theme-choice]").forEach((button) => {
     button.classList.toggle("active", button.dataset.themeChoice === mode);
   });
@@ -410,8 +409,6 @@ const renderState = () => {
   els.defaultNativeMode.value = state?.settings?.defaultNativeMode === "sync" ? "sync" : "override";
   els.siteDomainLabel.textContent = live ? (tab.domain || "-") : "-";
   els.sitePanelHint.textContent = live ? "Domain rules" : "Open a web tab";
-  els.siteActiveToggle.checked = !tab.siteDisabled;
-  els.siteActiveToggle.disabled = !live;
 
   els.siteNativeMode.value = !live
     ? "default"
@@ -686,13 +683,6 @@ const stopPolling = () => {
 els.enabledToggle.addEventListener("change", (event) => updateSetting("enabled", event.target.checked));
 els.startupSpeed.addEventListener("change", (event) => updateSetting("startupDefaultSpeed", Number(event.target.value)));
 els.defaultNativeMode.addEventListener("change", (event) => updateSetting("defaultNativeMode", event.target.value));
-els.siteActiveToggle.addEventListener("change", async (event) => {
-  const responded = await sendMessage({ type: "YSC_SET_SITE_DISABLED", disabled: !event.target.checked });
-
-  if (responded) {
-    setStateFromResponse(responded);
-  }
-});
 els.siteNativeMode.addEventListener("change", async (event) => {
   const responded = await sendMessage({ type: "YSC_SET_SITE_NATIVE_MODE", mode: event.target.value });
 
