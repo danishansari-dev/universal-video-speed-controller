@@ -2450,6 +2450,9 @@
     /**
      * Evaluates and builds toast DOM containers.
      * 
+     * Why this exists:
+     * Singleton factory creating the UI elements for speed overlays.
+     * 
      * @danishansari-dev - None
      */
     ensureToast() {
@@ -2466,7 +2469,23 @@
       this.toastValueText = document.createElement("span");
       this.toastValueText.className = "ysc-speed-toast-rate";
 
-      this.toast.append(this.toastLabelText, this.toastValueText);
+      // Why we build custom slider track elements:
+      // To provide a glassmorphic speed slider indicator representing progress
+      // from minimum speed to maximum speed, matching the premium visual design.
+      this.toastSlider = document.createElement("div");
+      this.toastSlider.className = "ysc-speed-toast-slider";
+      this.toastSliderTrack = document.createElement("div");
+      this.toastSliderTrack.className = "ysc-speed-toast-slider-track";
+      this.toastSliderFill = document.createElement("div");
+      this.toastSliderFill.className = "ysc-speed-toast-slider-fill";
+      this.toastSliderThumb = document.createElement("div");
+      this.toastSliderThumb.className = "ysc-speed-toast-slider-thumb";
+
+      this.toastSliderFill.append(this.toastSliderThumb);
+      this.toastSliderTrack.append(this.toastSliderFill);
+      this.toastSlider.append(this.toastSliderTrack);
+
+      this.toast.append(this.toastLabelText, this.toastValueText, this.toastSlider);
     }
 
     /**
@@ -2513,6 +2532,21 @@
       this.toastValueText.textContent = value;
       this.toast.classList.add("ysc-speed-toast-visible");
 
+      // Why we calculate and apply the slider width inline:
+      // We map the active numeric speed rate between YSC_MIN_PLAYBACK_RATE and YSC_MAX_PLAYBACK_RATE
+      // to a percentage width to dynamically fill the glassmorphic speed bar.
+      if (this.toastSlider) {
+        if (typeof options.rate === "number") {
+          this.toastSlider.style.display = "";
+          const minRate = globalThis.YSC_MIN_PLAYBACK_RATE || 0.25;
+          const maxRate = globalThis.YSC_MAX_PLAYBACK_RATE || 10;
+          const pct = Math.min(100, Math.max(0, ((options.rate - minRate) / (maxRate - minRate)) * 100));
+          this.toastSliderFill.style.width = `${pct}%`;
+        } else {
+          this.toastSlider.style.display = "none";
+        }
+      }
+
       window.clearTimeout(this.toastTimer);
       this.toastTimer = window.setTimeout(() => {
         this.toast?.classList.remove("ysc-speed-toast-visible");
@@ -2530,6 +2564,7 @@
       this.showToast({
         label,
         value: formatRate(rate),
+        rate,
         force
       });
     }
