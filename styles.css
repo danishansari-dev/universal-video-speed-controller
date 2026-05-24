@@ -97,27 +97,48 @@
 .html5-video-player .ysc-speed-toast,
 body > .ysc-speed-toast {
   align-items: center;
-  background: rgba(0, 0, 0, .72);
-  border-radius: 4px;
+  /*
+   * Realistic Frosted Glass Design:
+   * 1. A diagonal white linear-gradient to emulate light reflecting off a glass surface (glare).
+   * 2. A semi-transparent dark backing layer to provide readability contrast over bright videos.
+   * 3. A thin white border representing the edge of a cut-glass pane.
+   * 4. A high blur backdrop-filter to refract the video colors behind the widget.
+   */
+  background: 
+    linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 50%),
+    rgba(15, 17, 23, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 16px;
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
   box-sizing: border-box;
   color: #fff;
   display: flex;
   flex-direction: column;
-  font: 400 13px/1.2 Roboto, Arial, sans-serif;
-  gap: 3px;
+  font-family: Roboto, Arial, sans-serif;
+  gap: 2px;
   justify-content: center;
   left: 50%;
   letter-spacing: 0;
-  min-height: 74px;
-  min-width: 112px;
+  min-height: 92px;
+  min-width: 146px;
   opacity: 0;
-  padding: 13px 20px;
+  padding: 16px 20px;
   pointer-events: none;
   position: absolute;
-  text-shadow: 0 0 2px rgba(0, 0, 0, .65);
+  /*
+   * Box shadow with a dark diffuse outer shadow and an inner border highlight
+   * to accentuate the three-dimensional depth of the glass pane.
+   */
+  box-shadow: 
+    0 24px 50px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
   top: 50%;
-  transform: translate(-50%, -50%) scale(.96);
-  transition: opacity .08s ease, transform .08s ease;
+  transform: translate(-50%, -50%) scale(0.92);
+  /*
+   * Smooth ease-out zoom transition.
+   */
+  transition: opacity 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 1000;
 }
 
@@ -132,23 +153,86 @@ body > .ysc-speed-toast-visible {
 }
 
 .ysc-speed-toast-label {
-  color: rgba(255, 255, 255, .86);
-  font-size: 13px;
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .ysc-speed-toast-rate {
   color: #fff;
-  font-size: 24px;
-  font-weight: 500;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin-top: 1px;
+  text-shadow: 0 2px 10px rgba(255, 255, 255, 0.15);
+}
+
+/*
+ * Dynamic speed slider styles to render inside the glassmorphic overlay.
+ */
+.ysc-speed-toast-slider {
+  margin-top: 12px;
+  width: 100%;
+}
+
+.ysc-speed-toast-slider-track {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 99px;
+  height: 4px;
+  position: relative;
+  width: 100%;
+}
+
+.ysc-speed-toast-slider-fill {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 99px;
+  height: 100%;
+  position: relative;
+  width: 0%;
+}
+
+.ysc-speed-toast-slider-thumb {
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 
+    0 0 10px #ffffff,
+    0 2px 4px rgba(0, 0, 0, 0.4);
+  height: 10px;
+  position: absolute;
+  right: -5px;
+  top: -3px;
+  width: 10px;
 }
 
 .ytp-big-mode .ysc-speed-toast {
-  min-height: 86px;
-  min-width: 132px;
+  min-height: 112px;
+  min-width: 172px;
+  border-radius: 20px;
+}
+
+.ytp-big-mode .ysc-speed-toast-label {
+  font-size: 13px;
 }
 
 .ytp-big-mode .ysc-speed-toast-rate {
-  font-size: 28px;
+  font-size: 34px;
+}
+
+.ytp-big-mode .ysc-speed-toast-slider {
+  margin-top: 16px;
+}
+
+.ytp-big-mode .ysc-speed-toast-slider-track {
+  height: 5px;
+}
+
+.ytp-big-mode .ysc-speed-toast-slider-thumb {
+  height: 12px;
+  right: -6px;
+  top: -3.5px;
+  width: 12px;
 }
 
 @media (max-width: 560px) {
@@ -313,16 +397,38 @@ body > .ysc-speed-toast-visible {
 }
 
 .ysc-speed-toast[data-ysc-theme="light"] {
-  background: rgba(255, 255, 255, .94);
-  border: 1px solid rgba(0, 0, 0, .08);
-  color: #111827;
+  /*
+   * Clean light mode glassmorphism using a white translucent background
+   * and a subtle dark border.
+   */
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 
+    0 16px 48px rgba(18, 19, 26, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  color: #12131a;
   text-shadow: none;
 }
 
 .ysc-speed-toast[data-ysc-theme="light"] .ysc-speed-toast-label {
-  color: rgba(17, 24, 39, .72);
+  color: rgba(18, 19, 26, 0.6);
 }
 
 .ysc-speed-toast[data-ysc-theme="light"] .ysc-speed-toast-rate {
-  color: #111827;
+  color: #12131a;
+  text-shadow: none;
+}
+
+.ysc-speed-toast[data-ysc-theme="light"] .ysc-speed-toast-slider-track {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.ysc-speed-toast[data-ysc-theme="light"] .ysc-speed-toast-slider-fill {
+  background: rgba(18, 19, 26, 0.8);
+}
+
+.ysc-speed-toast[data-ysc-theme="light"] .ysc-speed-toast-slider-thumb {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
