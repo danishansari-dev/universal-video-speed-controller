@@ -34,6 +34,17 @@ const DEFAULT_STORAGE = {
 let broadcastTimer = 0;
 let pendingChangedKeys = new Set();
 
+/**
+ * Seeds fallback default settings to chrome.storage.local and migrates legacy shortcuts.
+ * 
+ * Why this code exists:
+ * The extension must function immediately with default configurations on first run or update.
+ * If users have legacy defaults stored (Shift+. , Shift+, , Shift+Backspace), this migrates
+ * them automatically to the new bracket-based and backslash defaults (`[`, `]`, `\`).
+ * 
+ * @danishansari-dev - None
+ * @returns {void}
+ */
 const seedDefaults = () => {
   chrome.storage.local.get(Object.keys(DEFAULT_STORAGE), (values) => {
     if (chrome.runtime.lastError) {
@@ -46,6 +57,47 @@ const seedDefaults = () => {
     for (const [key, value] of Object.entries(DEFAULT_STORAGE)) {
       if (values[key] === undefined) {
         updates[key] = value;
+      }
+    }
+
+    // Check for existing shortcuts and migrate them if they are unchanged from the old defaults.
+    // Why this logic exists:
+    // We updated the default shortcuts in this release. Users who had the old default keys configured
+    // should automatically be transitioned to the new defaults ([ for decrease, ] for increase, \ for reset).
+    const currentShortcuts = values["youtubeSpeedController.shortcuts"];
+    if (currentShortcuts) {
+      let migrated = false;
+      const nextShortcuts = { ...currentShortcuts };
+
+      if (
+        nextShortcuts.increase
+        && nextShortcuts.increase.code === "Period"
+        && nextShortcuts.increase.shift === true
+      ) {
+        nextShortcuts.increase = { label: "]", code: "BracketRight" };
+        migrated = true;
+      }
+
+      if (
+        nextShortcuts.decrease
+        && nextShortcuts.decrease.code === "Comma"
+        && nextShortcuts.decrease.shift === true
+      ) {
+        nextShortcuts.decrease = { label: "[", code: "BracketLeft" };
+        migrated = true;
+      }
+
+      if (
+        nextShortcuts.reset
+        && nextShortcuts.reset.code === "Backspace"
+        && nextShortcuts.reset.shift === true
+      ) {
+        nextShortcuts.reset = { label: "\\", code: "Backslash" };
+        migrated = true;
+      }
+
+      if (migrated) {
+        updates["youtubeSpeedController.shortcuts"] = nextShortcuts;
       }
     }
 
