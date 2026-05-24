@@ -77,7 +77,7 @@ const els = {
   sessionAverage: $("#sessionAverage"),
   defaultNativeMode: $("#defaultNativeMode"),
   siteDomainLabel: $("#siteDomainLabel"),
-  siteDisableToggle: $("#siteDisableToggle"),
+  siteActiveToggle: $("#siteActiveToggle"),
   siteNativeMode: $("#siteNativeMode"),
   accessModeSelect: $("#accessModeSelect"),
   accessListInput: $("#accessListInput"),
@@ -97,7 +97,7 @@ let pollTimer = 0;
 
 const clampRate = (rate) => Math.min(MAX_RATE, Math.max(MIN_RATE, Math.round(Number(rate) / SPEED_STEP) * SPEED_STEP));
 // Use shared formatRate from constants.js, with local fallback
-const formatRate = globalThis.YSC_FORMAT_RATE || ((rate) => `${String(clampRate(rate)).replace(/\.?0+$/, "")}x`);
+const formatRate = globalThis.YSC_FORMAT_RATE || ((rate) => `${String(Number(clampRate(rate).toFixed(2)))}x`);
 
 const formatTime = (seconds) => {
   const value = Number(seconds);
@@ -410,8 +410,8 @@ const renderState = () => {
   els.defaultNativeMode.value = state?.settings?.defaultNativeMode === "sync" ? "sync" : "override";
   els.siteDomainLabel.textContent = live ? (tab.domain || "-") : "-";
   els.sitePanelHint.textContent = live ? "Domain rules" : "Open a web tab";
-  els.siteDisableToggle.checked = Boolean(tab.siteDisabled);
-  els.siteDisableToggle.disabled = !live;
+  els.siteActiveToggle.checked = !tab.siteDisabled;
+  els.siteActiveToggle.disabled = !live;
 
   els.siteNativeMode.value = !live
     ? "default"
@@ -686,8 +686,8 @@ const stopPolling = () => {
 els.enabledToggle.addEventListener("change", (event) => updateSetting("enabled", event.target.checked));
 els.startupSpeed.addEventListener("change", (event) => updateSetting("startupDefaultSpeed", Number(event.target.value)));
 els.defaultNativeMode.addEventListener("change", (event) => updateSetting("defaultNativeMode", event.target.value));
-els.siteDisableToggle.addEventListener("change", async (event) => {
-  const responded = await sendMessage({ type: "YSC_SET_SITE_DISABLED", disabled: event.target.checked });
+els.siteActiveToggle.addEventListener("change", async (event) => {
+  const responded = await sendMessage({ type: "YSC_SET_SITE_DISABLED", disabled: !event.target.checked });
 
   if (responded) {
     setStateFromResponse(responded);
@@ -750,4 +750,17 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("unload", stopPolling);
 wireHoldButton(els.decreaseBtn, -1);
 wireHoldButton(els.increaseBtn, 1);
+
+// Modern tab switcher logic.
+// Switches active CSS states on navigation tab buttons and data-tab content containers.
+document.querySelectorAll(".nav-tab-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const target = btn.dataset.tabTarget;
+    document.querySelectorAll(".nav-tab-btn").forEach((b) => b.classList.toggle("active", b === btn));
+    document.querySelectorAll(".tab-content").forEach((tab) => {
+      tab.classList.toggle("active", tab.dataset.tab === target);
+    });
+  });
+});
+
 init();
