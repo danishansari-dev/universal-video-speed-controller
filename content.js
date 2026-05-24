@@ -1441,10 +1441,12 @@
     /**
      * @danishansari-dev settings - SettingsManager instance reference.
      * @danishansari-dev controller - VideoController instance reference.
+     * @danishansari-dev observer - DOMObserver instance reference.
      */
-    constructor(settings, controller) {
+    constructor(settings, controller, observer) {
       this.settings = settings;
       this.controller = controller;
+      this.observer = observer;
       this.widget = null;
       this.widgetPlacement = "floating";
       this.floatingHideTimer = null;
@@ -2365,7 +2367,12 @@
         }
       } else if (settingsButton) {
         if (settingsButton.previousElementSibling !== this.widget) {
-          rightControls.insertBefore(this.widget, settingsButton);
+          const parent = settingsButton.parentNode;
+          if (parent) {
+            parent.insertBefore(this.widget, settingsButton);
+          } else {
+            rightControls.append(this.widget);
+          }
         }
       } else if (this.widget.parentElement !== rightControls || this.widget.nextElementSibling) {
         rightControls.append(this.widget);
@@ -3071,7 +3078,7 @@
         this.handleRateUpdate.bind(this),
         this.handleVideoUpdate.bind(this)
       );
-      this.widgetUI = new WidgetUI(this.settings, this.controller);
+      this.widgetUI = new WidgetUI(this.settings, this.controller, this.observer);
       this.toastUI = new ToastUI();
       this.shortcutManager = new ShortcutManager(this.settings, this.controller);
       this.wheelManager = new WheelManager(this.settings, this.controller, this.observer);
