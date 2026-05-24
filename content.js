@@ -2135,12 +2135,22 @@
       && event.metaKey === Boolean(shortcut.meta);
   };
 
+  /**
+   * Identifies if a keyboard event matches the increase or decrease shortcuts (including alternatives) and returns the direction.
+   * 
+   * Why this code exists:
+   * Playback speed control should be responsive to user keyboard input.
+   * Supporting both primary and alternative shortcut mappings gives users flexibility.
+   * 
+   * @danishansari-dev event - The keydown event to evaluate.
+   * @returns {number} 1 for speed increase, -1 for speed decrease, 0 otherwise.
+   */
   const getShortcutDirection = (event) => {
-    if (shortcutMatches(event, shortcuts.increase)) {
+    if (shortcutMatches(event, shortcuts.increase) || shortcutMatches(event, shortcuts.increaseAlt)) {
       return 1;
     }
 
-    if (shortcutMatches(event, shortcuts.decrease)) {
+    if (shortcutMatches(event, shortcuts.decrease) || shortcutMatches(event, shortcuts.decreaseAlt)) {
       return -1;
     }
 
