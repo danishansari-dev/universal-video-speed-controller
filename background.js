@@ -63,11 +63,26 @@ const seedDefaults = () => {
     // Check for existing shortcuts and migrate them if they are unchanged from the old defaults.
     // Why this logic exists:
     // We updated the default shortcuts in this release. Users who had the old default keys configured
-    // should automatically be transitioned to the new defaults ([ for decrease, ] for increase, \ for reset).
+    // should automatically be transitioned to the new defaults ([ for decrease, ] for increase, \ for reset)
+    // while keeping the traditional Shift + . / , as alternative shortcuts.
     const currentShortcuts = values["youtubeSpeedController.shortcuts"];
     if (currentShortcuts) {
       let migrated = false;
       const nextShortcuts = { ...currentShortcuts };
+
+      // Ensure alternative shortcuts (increaseAlt, decreaseAlt) are populated if missing.
+      // Why this exists:
+      // When users upgrade from a version without alternative shortcuts, we must add these new keys
+      // to their settings so they can use both the primary brackets and the traditional Shift + . / , keys.
+      if (nextShortcuts.increaseAlt === undefined) {
+        nextShortcuts.increaseAlt = { label: "Shift + .", code: "Period", shift: true };
+        migrated = true;
+      }
+
+      if (nextShortcuts.decreaseAlt === undefined) {
+        nextShortcuts.decreaseAlt = { label: "Shift + ,", code: "Comma", shift: true };
+        migrated = true;
+      }
 
       if (
         nextShortcuts.increase
