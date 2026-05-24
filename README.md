@@ -38,19 +38,14 @@ The popup includes:
 | --- | --- |
 | `]` or `Shift + .` | Increase speed by `0.25x` |
 | `[` or `Shift + ,` | Decrease speed by `0.25x` |
-| `Alt + 1` | Set speed to `1x` |
-| `Alt + 2` | Set speed to `2x` |
-| `Alt + 3` | Set speed to `3x` |
-| `Alt + 4` | Set speed to `4x` |
-| `Alt + 5` | Set speed to `5x` |
-| `Alt + 0` | Set speed to `10x` |
 | `\` | Reset speed to `1x` |
-| Hold `X` | Temporarily boost to `2x`; release to restore |
+| Hold `X` | Temporarily boost to `2x; release to restore` |
 | `Shift + S` | Toggle the floating widget |
 | `Shift + H` | Toggle the speed overlay |
+| *Customizable* (Unmapped by default) | Preset speed steps (`1x`, `2x`, `3x`, `4x`, `5x`, `10x`) |
 | `Ctrl + mouse wheel` | Increase or decrease speed by `0.25x` over the player |
 
-Shortcuts can be edited from the popup.
+Shortcuts can be fully customized from the popup.
 
 ## Floating Widget
 
