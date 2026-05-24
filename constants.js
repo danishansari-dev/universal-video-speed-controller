@@ -40,7 +40,9 @@ const YSC_STORAGE_KEYS = Object.freeze({
 
 const YSC_DEFAULT_SHORTCUTS = Object.freeze({
   increase: Object.freeze({ label: "]", code: "BracketRight" }),
+  increaseAlt: Object.freeze({ label: "Shift + .", code: "Period", shift: true }),
   decrease: Object.freeze({ label: "[", code: "BracketLeft" }),
+  decreaseAlt: Object.freeze({ label: "Shift + ,", code: "Comma", shift: true }),
   reset: Object.freeze({ label: "\\", code: "Backslash" }),
   boost: Object.freeze({ label: "X (hold)", code: "KeyX", hold: true }),
   widgetToggle: Object.freeze({ label: "Shift + S", code: "KeyS", shift: true }),
