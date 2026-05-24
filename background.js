@@ -1,12 +1,29 @@
 "use strict";
 
-try {
-  importScripts("constants.js");
-} catch (error) {
-  console.error("[Video Speed Controller] Failed to load shared constants.", error);
-}
-
 const STORAGE_PREFIX = "youtubeSpeedController.";
+
+// Why we inline default shortcuts in background.js instead of importing from constants.js:
+// Manifest V3 service workers on Chrome can throw a DOMException or fail to register during updates
+// when calling importScripts() synchronously at startup. Since background.js only needs the
+// shortcuts object for seeding default values, inlining the default values eliminates this
+// unstable importScripts dependency and ensures reliable service worker registration.
+const DEFAULT_SHORTCUTS = {
+  increase: { label: "]", code: "BracketRight" },
+  increaseAlt: { label: "Shift + .", code: "Period", shift: true },
+  decrease: { label: "[", code: "BracketLeft" },
+  decreaseAlt: { label: "Shift + ,", code: "Comma", shift: true },
+  reset: { label: "\\", code: "Backslash" },
+  boost: { label: "X (hold)", code: "KeyX", hold: true },
+  widgetToggle: { label: "Shift + S", code: "KeyS", shift: true },
+  overlayToggle: { label: "Shift + H", code: "KeyH", shift: true },
+  preset1: { label: "", code: "" },
+  preset2: { label: "", code: "" },
+  preset3: { label: "", code: "" },
+  preset4: { label: "", code: "" },
+  preset5: { label: "", code: "" },
+  preset10: { label: "", code: "" }
+};
+
 const DEFAULT_STORAGE = {
   "youtubeSpeedController.enabled": true,
   "youtubeSpeedController.keyboardEnabled": true,
@@ -24,7 +41,7 @@ const DEFAULT_STORAGE = {
   "youtubeSpeedController.siteAccessList": [],
   "youtubeSpeedController.startupDefaultSpeed": 1,
   "youtubeSpeedController.playbackRate": 1,
-  "youtubeSpeedController.shortcuts": globalThis.YSC_DEFAULT_SHORTCUTS || {},
+  "youtubeSpeedController.shortcuts": DEFAULT_SHORTCUTS,
   "youtubeSpeedController.channelRates": {},
   "youtubeSpeedController.sitePolicies": {},
   "youtubeSpeedController.widgetHidden": false,
