@@ -12,21 +12,28 @@
   --blue: #66e3ff;
   --green: #42e89f;
   --shadow: 0 20px 60px rgba(0, 0, 0, .36);
+  --control-bg: rgba(255, 255, 255, .08);
+  --control-bg-hover: rgba(255, 255, 255, .16);
+  --control-bg-active: rgba(255, 255, 255, .24);
 }
 
 * {
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
-  min-width: 390px;
+  padding: 0;
   width: 390px;
-  max-height: 640px;
+  height: 600px;
+  overflow: hidden;
   background: var(--bg);
+}
+
+body {
   color: var(--text);
   font: 13px/1.4 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  overflow: hidden;
 }
 
 button,
@@ -44,11 +51,11 @@ button {
     radial-gradient(circle at 18% -4%, rgba(255, 0, 51, .28), transparent 34%),
     radial-gradient(circle at 88% 8%, rgba(102, 227, 255, .16), transparent 32%),
     linear-gradient(145deg, #101119 0%, #090a0f 52%, #111016 100%);
-  max-height: 640px;
-  min-height: 600px;
+  height: 100%;
+  width: 100%;
   overflow-x: hidden;
   overflow-y: auto;
-  padding: 14px;
+  padding: 10px;
 }
 
 .app-shell::-webkit-scrollbar,
@@ -58,11 +65,11 @@ button {
 
 .app-shell::-webkit-scrollbar-thumb,
 .shortcut-list::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, .16);
+  background: var(--control-bg-hover);
   border-radius: 999px;
 }
 
-.app-shell[data-theme="light"] {
+:root[data-theme="light"] {
   color-scheme: light;
   --bg: #f5f6fb;
   --panel: rgba(255, 255, 255, .74);
@@ -71,10 +78,43 @@ button {
   --text: #12131a;
   --muted: rgba(18, 19, 26, .64);
   --soft: rgba(18, 19, 26, .42);
+  --shadow: 0 12px 40px rgba(18, 19, 26, .06);
+  --control-bg: rgba(0, 0, 0, .05);
+  --control-bg-hover: rgba(0, 0, 0, .1);
+  --control-bg-active: rgba(0, 0, 0, .15);
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-theme="auto"] {
+    color-scheme: light;
+    --bg: #f5f6fb;
+    --panel: rgba(255, 255, 255, .74);
+    --panel-strong: rgba(255, 255, 255, .92);
+    --line: rgba(16, 18, 27, .1);
+    --text: #12131a;
+    --muted: rgba(18, 19, 26, .64);
+    --soft: rgba(18, 19, 26, .42);
+    --shadow: 0 12px 40px rgba(18, 19, 26, .06);
+    --control-bg: rgba(0, 0, 0, .05);
+    --control-bg-hover: rgba(0, 0, 0, .1);
+    --control-bg-active: rgba(0, 0, 0, .15);
+  }
+}
+
+:root[data-theme="light"] .app-shell {
   background:
     radial-gradient(circle at 18% -4%, rgba(255, 0, 51, .16), transparent 34%),
     radial-gradient(circle at 88% 8%, rgba(0, 132, 255, .12), transparent 32%),
     linear-gradient(145deg, #fff 0%, #f5f6fb 100%);
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-theme="auto"] .app-shell {
+    background:
+      radial-gradient(circle at 18% -4%, rgba(255, 0, 51, .16), transparent 34%),
+      radial-gradient(circle at 88% 8%, rgba(0, 132, 255, .12), transparent 32%),
+      linear-gradient(145deg, #fff 0%, #f5f6fb 100%);
+  }
 }
 
 .topbar,
@@ -171,7 +211,7 @@ h2 {
 }
 
 .power-toggle span {
-  background: rgba(255, 255, 255, .14);
+  background: var(--control-bg);
   border: 1px solid var(--line);
   border-radius: 999px;
   display: block;
@@ -203,21 +243,21 @@ h2 {
 }
 
 .hero-panel {
-  margin-top: 12px;
-  padding: 14px;
+  margin-top: 10px;
+  padding: 12px;
 }
 
 .dial-wrap {
-  min-height: 176px;
+  min-height: 156px;
   position: relative;
 }
 
 .speed-dial {
   display: block;
-  height: 168px;
+  height: 148px;
   margin: 0 auto;
   transform: rotate(-90deg);
-  width: 168px;
+  width: 148px;
 }
 
 .dial-track,
@@ -227,7 +267,7 @@ h2 {
 }
 
 .dial-track {
-  stroke: rgba(255, 255, 255, .1);
+  stroke: var(--line);
 }
 
 .dial-progress {
@@ -253,7 +293,7 @@ h2 {
 
 .round-control {
   align-items: center;
-  background: rgba(255, 255, 255, .12);
+  background: var(--control-bg);
   border: 1px solid var(--line);
   border-radius: 50%;
   color: var(--text);
@@ -266,8 +306,8 @@ h2 {
 
 .round-control:hover,
 .round-control.holding {
-  background: rgba(255, 255, 255, .2);
-  border-color: rgba(255, 255, 255, .24);
+  background: var(--control-bg-hover);
+  border-color: var(--line);
   transform: translateY(-1px) scale(1.03);
 }
 
@@ -308,11 +348,11 @@ h2 {
   display: grid;
   gap: 8px;
   grid-template-columns: repeat(4, 1fr);
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 .preset-chip {
-  background: rgba(255, 255, 255, .1);
+  background: var(--control-bg);
   border: 1px solid var(--line);
   border-radius: 12px;
   color: var(--text);
@@ -321,13 +361,13 @@ h2 {
 }
 
 .preset-chip:hover {
-  background: rgba(255, 255, 255, .18);
+  background: var(--control-bg-hover);
   transform: translateY(-1px);
 }
 
 .preset-chip.active {
   background: linear-gradient(135deg, rgba(255, 0, 51, .96), rgba(255, 75, 98, .86));
-  border-color: rgba(255, 255, 255, .24);
+  border-color: var(--line);
   box-shadow: 0 10px 26px rgba(255, 0, 51, .22);
 }
 
@@ -342,8 +382,8 @@ h2 {
 .settings-panel,
 .shortcuts-panel,
 .analytics-panel {
-  margin-top: 12px;
-  padding: 12px;
+  margin-top: 10px;
+  padding: 10px;
 }
 
 .section-heading {
@@ -379,11 +419,11 @@ h2 {
   font-size: 11px;
   gap: 8px;
   grid-template-columns: 38px 1fr 38px;
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 .video-progress {
-  background: rgba(255, 255, 255, .12);
+  background: var(--control-bg);
   border-radius: 999px;
   height: 6px;
   overflow: hidden;
@@ -401,12 +441,12 @@ h2 {
   display: grid;
   gap: 8px;
   grid-template-columns: repeat(2, 1fr);
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 .metric-row div,
 .analytics-grid div {
-  background: rgba(255, 255, 255, .08);
+  background: var(--control-bg);
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 9px;
@@ -437,7 +477,7 @@ h2 {
 
 .setting-toggle {
   align-items: center;
-  background: rgba(255, 255, 255, .08);
+  background: var(--control-bg);
   border: 1px solid var(--line);
   border-radius: 12px;
   display: flex;
@@ -451,7 +491,7 @@ h2 {
 }
 
 .mini-switch {
-  background: rgba(255, 255, 255, .15);
+  background: var(--control-bg);
   border-radius: 999px;
   flex: 0 0 auto;
   height: 18px;
@@ -503,12 +543,8 @@ h2 {
   margin-top: 10px;
 }
 
-.split-controls .theme-switch {
-  grid-column: 1 / -1;
-}
-
 .select-field {
-  background: rgba(255, 255, 255, .08);
+  background: var(--control-bg);
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 8px;
@@ -530,13 +566,14 @@ h2 {
 }
 
 .theme-switch {
-  background: rgba(255, 255, 255, .08);
+  background: var(--control-bg);
   border: 1px solid var(--line);
   border-radius: 12px;
   display: grid;
   gap: 3px;
   grid-template-columns: repeat(3, 1fr);
   padding: 4px;
+  margin-top: 10px;
 }
 
 .theme-switch button,
@@ -548,7 +585,7 @@ h2 {
 }
 
 .theme-switch button.active {
-  background: rgba(255, 255, 255, .16);
+  background: var(--control-bg-hover);
   color: var(--text);
 }
 
@@ -567,7 +604,7 @@ h2 {
 }
 
 .search-wrap input {
-  background: rgba(255, 255, 255, .08);
+  background: var(--control-bg);
   border: 1px solid var(--line);
   border-radius: 11px;
   color: var(--text);
@@ -593,7 +630,7 @@ h2 {
 
 .shortcut-card {
   align-items: center;
-  background: rgba(255, 255, 255, .08);
+  background: var(--control-bg);
   border: 1px solid var(--line);
   border-radius: 12px;
   display: grid;
@@ -619,7 +656,7 @@ h2 {
 }
 
 .keycap {
-  background: rgba(255, 255, 255, .12);
+  background: var(--control-bg);
   border: 1px solid var(--line);
   border-radius: 9px;
   color: var(--text);
@@ -679,7 +716,7 @@ h2 {
 }
 
 .access-list {
-  background: rgba(255, 255, 255, .06);
+  background: var(--control-bg);
   border: 1px solid var(--line);
   border-radius: 12px;
   box-sizing: border-box;
@@ -693,10 +730,6 @@ h2 {
   width: 100%;
 }
 
-.app-shell[data-theme="light"] .access-list {
-  background: rgba(0, 0, 0, .04);
-}
-
 .ghost-button.full-width {
   width: 100%;
 }
@@ -708,6 +741,62 @@ h2 {
 .is-disabled .shortcuts-panel,
 .is-disabled .analytics-panel {
   opacity: .72;
+}
+
+/* Redesigned Tab Navigation styling rules */
+.nav-tabs {
+  display: flex;
+  background: var(--control-bg);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 3px;
+  margin-top: 10px;
+  gap: 2px;
+  backdrop-filter: blur(8px);
+}
+
+.nav-tab-btn {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 8px 4px;
+  transition: background .14s ease, color .14s ease, transform .1s ease;
+  text-align: center;
+}
+
+.nav-tab-btn:hover {
+  color: var(--text);
+}
+
+.nav-tab-btn.active {
+  background: var(--control-bg-hover);
+  color: var(--text);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .12);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+  animation: fadeInTab .18s ease-out;
+}
+
+
+@keyframes fadeInTab {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes pulse {
@@ -727,3 +816,4 @@ h2 {
     background: rgba(255, 75, 98, .48);
   }
 }
+
