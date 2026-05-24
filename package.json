@@ -1,0 +1,13 @@
+{
+  "name": "youtube-speed-controller",
+  "version": "0.2.0",
+  "description": "Playback speed controls for HTML5 video on any website",
+  "type": "commonjs",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  }
+}
