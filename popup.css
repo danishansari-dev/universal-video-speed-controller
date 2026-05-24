@@ -58,15 +58,39 @@ button {
   padding: 10px;
 }
 
-.app-shell::-webkit-scrollbar,
-.shortcut-list::-webkit-scrollbar {
-  width: 8px;
+/*
+ * Hide the main scrollbar on the app shell to avoid Chromium compositing/rendering
+ * glitches on Windows, while keeping the container scrollable. The shortcuts tab
+ * uses its own custom-styled scrollbar instead.
+ */
+.app-shell {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+.app-shell::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
 }
 
-.app-shell::-webkit-scrollbar-thumb,
+/*
+ * Custom scrollbar styling for the shortcut list where scroll indicator is
+ * visually necessary for long shortcut lists.
+ */
+.shortcut-list {
+  scrollbar-width: thin;
+  scrollbar-color: var(--control-bg-hover) transparent;
+}
+.shortcut-list::-webkit-scrollbar {
+  width: 6px;
+}
+.shortcut-list::-webkit-scrollbar-track {
+  background: transparent;
+}
 .shortcut-list::-webkit-scrollbar-thumb {
   background: var(--control-bg-hover);
   border-radius: 999px;
+}
+.shortcut-list::-webkit-scrollbar-thumb:hover {
+  background: var(--control-bg-active);
 }
 
 :root[data-theme="light"] {
@@ -128,6 +152,12 @@ button {
   border: 1px solid var(--line);
   border-radius: 18px;
   box-shadow: var(--shadow);
+  /*
+   * Force hardware-accelerated GPU compositing context on all major panels.
+   * This prevents Chromium from creating half-complete subpixel layout offsets
+   * that cause ghost vertical curves to render on borders/shadow boundaries.
+   */
+  transform: translate3d(0, 0, 0);
 }
 
 .topbar {
@@ -547,6 +577,14 @@ h2 {
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 8px;
+  /*
+   * Force select fields to render as blocks rather than relying on inline layout.
+   * Inline label elements will otherwise attempt to render next to other inline items
+   * (like the domain label badge) and get sliced/split across line wraps,
+   * producing broken border-radius rendering artifacts (ghost curves).
+   */
+  display: block;
+  width: 100%;
 }
 
 .select-field span {
