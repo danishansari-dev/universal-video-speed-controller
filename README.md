@@ -82,13 +82,24 @@ After making code changes, click **Reload** on the extension card in `chrome://e
 - `manifest.json` defines the Manifest V3 extension, permissions, popup, icons, service worker, and content scripts.
 - `background.js` seeds defaults on install/update and broadcasts storage changes to open tabs.
 - `constants.js` stores shared shortcut defaults used by the content script, popup, and service worker.
-- `content.js` injects the floating widget, manages playback speed, shortcuts, settings, popup messaging, and analytics.
+- `content.js` is the core content script, fully refactored into a high-performance, modular class-based architecture (`SettingsManager`, `DOMObserver`, `VideoController`, `WidgetUI`, `ToastUI`, `ShortcutManager`, `WheelManager`, `AnalyticsManager`, `AppController`).
 - `styles.css` styles the in-player widget and YouTube-style overlay.
 - `popup.html` defines the toolbar popup markup.
 - `popup.css` styles the modern popup UI.
 - `popup.js` syncs popup state with the active video tab and persists settings.
 - `assets/icons/` contains extension icons referenced by the manifest.
 - `assets/store/` contains promotional PNG assets for store listing preparation.
+
+## Architecture & Engineering
+
+This extension is built to meet startup-grade production standards, prioritizing performance, readability, and reliability:
+
+- **Modular Design**: Code is encapsulated within single-responsibility classes under a central orchestrating `AppController`. This allows each manager (Shortcuts, UI, Analytics, Settings) to operate independently.
+- **High-Performance DOM Scanning**: Instead of periodic expensive `querySelectorAll("*")` deep scans that trigger CPU spikes and layout thrashing, a custom tree walker traverses the DOM while skipping layout-only nodes. It listens to event-driven mutations to observe shadow roots dynamically, reducing CPU usage to nearly 0%.
+- **Zero-Leak Lifecycle & Teardown**: To solve extension context invalidation errors and double-event registrations during hot reloads/updates, the script registers a global `__youtubeSpeedControllerCleanup` callback. It completely tears down previous handlers, MutationObservers, timers, and DOM nodes before starting the new instance.
+- **Smooth 60 FPS Layouts**: UI updates, coordinate recalculations, and obstacle avoidance checking (using corner penalties and overlapping rect areas) are debounced and batched using `requestAnimationFrame`.
+- **Fault-Tolerant Storage**: All storage queries and runtime actions are wrapped in error boundaries. If context invalidates after an extension reload, storage APIs degrade gracefully to defaults.
+
 
 ## Development Notes
 
