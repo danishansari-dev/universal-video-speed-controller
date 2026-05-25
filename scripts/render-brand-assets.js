@@ -1245,6 +1245,19 @@ const frame = ({ id, width, height, transparent = false, body }) => `<!doctype h
         font-size: 25px;
         line-height: 1.34;
       }
+      .asset-overlay .video-toast {
+        left: 42%;
+        top: 57%;
+        width: 176px;
+        padding: 20px 22px;
+        border-radius: 18px;
+      }
+      .asset-overlay .video-toast strong {
+        font-size: 40px;
+      }
+      .asset-overlay .video-toast span {
+        font-size: 13px;
+      }
     </style>
   </head>
   <body>
@@ -1411,12 +1424,12 @@ const assets = [
     height: 800,
     out: path.join("assets", "store", "screenshot-05-overlay-1280x800.png"),
     body: `
-      ${browserMock({ style: "left:96px;top:92px;width:1088px;height:622px;", className: "no-sidebar", sidebar: false, overlay: true, inline: true })}
-      <div class="section-title" style="left:144px;top:134px;width:462px;">
-        <h1 style="font-size:44px;">Floating speed overlay</h1>
-        <p style="font-size:22px;">Visible feedback without leaving fullscreen.</p>
+      <div class="section-title" style="left:72px;top:70px;width:610px;">
+        <h1 style="font-size:52px;">Floating speed overlay</h1>
+        <p style="font-size:23px;">Visible feedback without leaving fullscreen.</p>
       </div>
-      ${popupMock("control", "right:136px;top:174px;width:306px;")}
+      ${browserMock({ style: "left:72px;top:218px;width:1136px;height:500px;", className: "no-sidebar", sidebar: false, overlay: true, inline: false })}
+      ${popupMock("control", "right:112px;top:264px;width:292px;")}
     `
   }
 ];
