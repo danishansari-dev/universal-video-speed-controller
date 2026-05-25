@@ -1,20 +1,43 @@
 # Universal Video Speed Controller
 
-A modern Chrome extension for fast, precise HTML5 video playback speed control.
+A modern Chrome extension for fast, precise HTML5 video playback speed control on any HTML5 player.
 
-The extension adds a native-feeling floating speed widget on video players and a polished toolbar popup for advanced controls, settings, shortcuts, live video status, and usage insights.
+The extension adds a native-feeling floating speed widget, toolbar popup controls, keyboard shortcuts, wheel/touchpad speed gestures, per-site rules, and local usage insights.
+
+![Universal Video Speed Controller promo](assets/store/promo-1280x800.png)
 
 ## Features
 
 - Floating `- / speed / +` widget on detected HTML5 video players.
 - Speed range from `0.25x` to `10x` in `0.25x` steps.
 - Single-click speed changes and press-and-hold acceleration on the widget buttons.
+- `Ctrl + mouse wheel` speed control while hovering over the video or player.
+- `Ctrl + two-finger touchpad scroll` speed control on supported touchpads.
+- Hold `X` for temporary boost mode, then release to restore the previous speed.
 - Premium neutral frosted-glass speed overlay toast in the center of the video player with specular glare reflections, high background blur, and a dynamic progress slider whenever playback speed changes.
 - Modern toolbar popup with speed dial, presets, live video info, settings, shortcuts, and analytics.
 - Real-time sync with the active video when the popup is open.
 - Works with dynamically loaded players and single-page navigation.
 - Avoids shortcut triggers while typing in search, comments, inputs, and editable fields.
-- Persists preferences with Chrome storage.
+- Remembers preferred speeds globally, per website, or per YouTube channel.
+- Optional access rules for all websites, allowlists, or blocklists.
+- Persists preferences locally with Chrome storage.
+
+## Store Preview Images
+
+The promotional assets in `assets/store/` show the core feature set:
+
+![Promo banner](assets/store/promo-1400x560.png)
+
+| Controls | Shortcuts and Gestures |
+| --- | --- |
+| ![Speed controls](assets/store/screenshot-01-control-1280x800.png) | ![Shortcuts and gestures](assets/store/screenshot-02-shortcuts-1280x800.png) |
+
+| Rules and Memory | Insights and Overlay |
+| --- | --- |
+| ![Rules and memory](assets/store/screenshot-03-rules-settings-1280x800.png) | ![Usage insights](assets/store/screenshot-04-insights-1280x800.png) |
+
+![Fullscreen overlay](assets/store/screenshot-05-overlay-1280x800.png)
 
 ## Toolbar Popup
 
@@ -28,7 +51,7 @@ The popup includes:
 - `+` and `-` controls with press-and-hold acceleration.
 - Preset buttons for `0.25x`, `0.5x`, `1x`, `1.5x`, `2x`, `3x`, `5x`, and `10x`.
 - Live video title, timestamp, duration, playback speed, and tab domain.
-- Smart settings for widget, shortcuts, mouse wheel, boost mode, memory behavior, overlay animation, compact mode, fullscreen-only controls, theme, and startup speed.
+- Smart settings for widget, shortcuts, wheel/touchpad gestures, boost mode, memory behavior, overlay animation, compact mode, fullscreen-only controls, theme, and startup speed.
 - Shortcut manager with editable shortcut cards, reset, search, and conflict warnings.
 - Lightweight usage insights such as time saved, most used speed, daily usage, and current session average.
 
@@ -39,13 +62,23 @@ The popup includes:
 | `]` or `Shift + .` | Increase speed by `0.25x` |
 | `[` or `Shift + ,` | Decrease speed by `0.25x` |
 | `\` | Reset speed to `1x` |
-| Hold `X` | Temporarily boost to `2x; release to restore` |
+| Hold `X` | Temporarily boost to `2x`; release to restore |
 | `Shift + S` | Toggle the floating widget |
 | `Shift + H` | Toggle the speed overlay |
 | *Customizable* (Unmapped by default) | Preset speed steps (`1x`, `2x`, `3x`, `4x`, `5x`, `10x`) |
 | `Ctrl + mouse wheel` | Increase or decrease speed by `0.25x` over the player |
+| `Ctrl + two-finger touchpad scroll` | Increase or decrease speed by `0.25x` over the player on supported touchpads |
 
 Shortcuts can be fully customized from the popup.
+
+## Wheel And Touchpad Control
+
+When **Wheel / touchpad** is enabled in Smart Settings, hold `Ctrl` and scroll over the active video player:
+
+- Scroll up to increase playback speed by `0.25x`.
+- Scroll down to decrease playback speed by `0.25x`.
+- Use a mouse wheel or a two-finger touchpad scroll gesture.
+- The gesture only applies over the video/player area, so normal page scrolling still works elsewhere.
 
 ## Floating Widget
 
