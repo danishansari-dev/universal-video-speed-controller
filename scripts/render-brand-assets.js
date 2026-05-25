@@ -1320,7 +1320,7 @@ const assets = [
       <div class="feature-rail three" style="left:76px;bottom:32px;width:674px;">
         ${featureCard({ title: "Keyboard", text: "Editable speed steps", key: "] / [", tone: "violet" })}
         ${featureCard({ title: "Mouse wheel", text: "Control while hovering", tone: "cyan" })}
-        ${featureCard({ title: "Pinch in / out", text: "Native-feeling gesture", tone: "green" })}
+        ${featureCard({ title: "Pinch in / out", text: "Pinch in / pinch out", tone: "green" })}
       </div>
     `
   },
