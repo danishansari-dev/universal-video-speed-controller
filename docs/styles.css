@@ -609,15 +609,15 @@ footer {
   color: var(--quiet);
 }
 
-.js .fade-in {
-  opacity: 0;
-  transform: translateY(18px);
+.fade-in {
+  opacity: 1;
+  transform: none;
   transition: opacity .55s ease, transform .55s ease;
 }
 
-.js .fade-in.visible {
+.fade-in.visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: none;
 }
 
 .delay-1 {
@@ -677,7 +677,7 @@ footer {
   .hero,
   .section,
   footer {
-    width: min(100% - 32px, var(--max));
+    width: min(calc(100% - 32px), var(--max));
   }
 
   .logo span {
@@ -688,6 +688,21 @@ footer {
   .hero {
     gap: 30px;
     padding-bottom: 48px;
+  }
+
+  .hero-copy,
+  .hero-lede {
+    max-width: 340px;
+  }
+
+  h1 {
+    max-width: 340px;
+    font-size: 36px;
+    line-height: 1.04;
+  }
+
+  h2 {
+    font-size: 34px;
   }
 
   .hero-lede,
