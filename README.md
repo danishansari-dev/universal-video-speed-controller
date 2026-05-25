@@ -2,7 +2,7 @@
 
 A modern Chrome extension for fast, precise HTML5 video playback speed control on any HTML5 player.
 
-The extension adds a native-feeling floating speed widget, toolbar popup controls, keyboard shortcuts, wheel/touchpad speed gestures, per-site rules, and local usage insights.
+The extension adds a native-feeling floating speed widget, toolbar popup controls, keyboard shortcuts, wheel and pinch speed gestures, per-site rules, and local usage insights.
 
 ![Universal Video Speed Controller promo](assets/store/promo-1280x800.png)
 
@@ -12,9 +12,9 @@ The extension adds a native-feeling floating speed widget, toolbar popup control
 - Speed range from `0.25x` to `10x` in `0.25x` steps.
 - Single-click speed changes and press-and-hold acceleration on the widget buttons.
 - `Ctrl + mouse wheel` speed control while hovering over the video or player.
-- `Ctrl + two-finger touchpad scroll` speed control on supported touchpads.
+- Pinch in / pinch out gesture support on touchpads that emit browser pinch gestures.
 - Hold `X` for temporary boost mode, then release to restore the previous speed.
-- Premium neutral frosted-glass speed overlay toast in the center of the video player with specular glare reflections, high background blur, and a dynamic progress slider whenever playback speed changes.
+- Minimal frosted speed overlay toast in the center of the video player with a dynamic progress slider whenever playback speed changes.
 - Modern toolbar popup with speed dial, presets, live video info, settings, shortcuts, and analytics.
 - Real-time sync with the active video when the popup is open.
 - Works with dynamically loaded players and single-page navigation.
@@ -51,7 +51,7 @@ The popup includes:
 - `+` and `-` controls with press-and-hold acceleration.
 - Preset buttons for `0.25x`, `0.5x`, `1x`, `1.5x`, `2x`, `3x`, `5x`, and `10x`.
 - Live video title, timestamp, duration, playback speed, and tab domain.
-- Smart settings for widget, shortcuts, wheel/touchpad gestures, boost mode, memory behavior, overlay animation, compact mode, fullscreen-only controls, theme, and startup speed.
+- Smart settings for widget, shortcuts, wheel/pinch gestures, boost mode, memory behavior, overlay animation, compact mode, fullscreen-only controls, theme, and startup speed.
 - Shortcut manager with editable shortcut cards, reset, search, and conflict warnings.
 - Lightweight usage insights such as time saved, most used speed, daily usage, and current session average.
 
@@ -67,18 +67,17 @@ The popup includes:
 | `Shift + H` | Toggle the speed overlay |
 | *Customizable* (Unmapped by default) | Preset speed steps (`1x`, `2x`, `3x`, `4x`, `5x`, `10x`) |
 | `Ctrl + mouse wheel` | Increase or decrease speed by `0.25x` over the player |
-| `Ctrl + two-finger touchpad scroll` | Increase or decrease speed by `0.25x` over the player on supported touchpads |
+| Pinch in / pinch out gesture | Increase or decrease speed by `0.25x` over the player on supported touchpads |
 
 Shortcuts can be fully customized from the popup.
 
-## Wheel And Touchpad Control
+## Wheel And Pinch Control
 
-When **Wheel / touchpad** is enabled in Smart Settings, hold `Ctrl` and scroll over the active video player:
+When **Wheel / pinch** is enabled in Smart Settings, use one of these gestures over the active video player:
 
-- Scroll up to increase playback speed by `0.25x`.
-- Scroll down to decrease playback speed by `0.25x`.
-- Use a mouse wheel or a two-finger touchpad scroll gesture.
-- The gesture only applies over the video/player area, so normal page scrolling still works elsewhere.
+- Hold `Ctrl` and scroll up/down with a mouse wheel to increase or decrease playback speed by `0.25x`.
+- Pinch in / pinch out on supported touchpads to adjust speed through the browser's pinch gesture event.
+- The gesture only applies over the video/player area, so normal page scrolling and gestures still work elsewhere.
 
 ## Floating Widget
 

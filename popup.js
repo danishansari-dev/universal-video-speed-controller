@@ -19,7 +19,7 @@ if (!globalThis.YSC_DEFAULT_SHORTCUTS) {
 const SETTING_DEFS = [
   ["widgetEnabled", "Floating widget", "Inline or floating controls"],
   ["keyboardEnabled", "Shortcuts", "Keyboard layer"],
-  ["mouseWheelEnabled", "Wheel / touchpad", "Ctrl + scroll over video"],
+  ["mouseWheelEnabled", "Wheel / pinch", "Mouse wheel and pinch gestures"],
   ["boostEnabled", "Boost mode", "Hold X"],
   ["rememberPerChannel", "Per channel", "YouTube channel memory"],
   ["rememberGlobally", "Global memory", "Last speed everywhere"],

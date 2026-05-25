@@ -97,20 +97,13 @@
 .html5-video-player .ysc-speed-toast,
 body > .ysc-speed-toast {
   align-items: center;
-  /*
-   * Realistic Frosted Glass Design:
-   * 1. A diagonal white linear-gradient to emulate light reflecting off a glass surface (glare).
-   * 2. A semi-transparent dark backing layer to provide readability contrast over bright videos.
-   * 3. A thin white border representing the edge of a cut-glass pane.
-   * 4. A high blur backdrop-filter to refract the video colors behind the widget.
-   */
-  background: 
-    linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 50%),
-    rgba(15, 17, 23, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
+    rgba(13, 15, 20, 0.68);
+  border: 0;
   border-radius: 16px;
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.18);
+  -webkit-backdrop-filter: blur(18px) saturate(1.18);
   box-sizing: border-box;
   color: #fff;
   display: flex;
@@ -120,25 +113,18 @@ body > .ysc-speed-toast {
   justify-content: center;
   left: 50%;
   letter-spacing: 0;
-  min-height: 92px;
-  min-width: 146px;
+  min-height: 88px;
+  min-width: 136px;
   opacity: 0;
-  padding: 16px 20px;
+  padding: 14px 18px;
   pointer-events: none;
   position: absolute;
-  /*
-   * Box shadow with a dark diffuse outer shadow and an inner border highlight
-   * to accentuate the three-dimensional depth of the glass pane.
-   */
-  box-shadow: 
-    0 24px 50px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 18px 38px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   top: 50%;
   transform: translate(-50%, -50%) scale(0.92);
-  /*
-   * Smooth ease-out zoom transition.
-   */
-  transition: opacity 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: opacity 0.15s ease, transform 0.15s ease;
   z-index: 1000;
 }
 
@@ -154,26 +140,22 @@ body > .ysc-speed-toast-visible {
 
 .ysc-speed-toast-label {
   color: rgba(255, 255, 255, 0.64);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
 }
 
 .ysc-speed-toast-rate {
   color: #fff;
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 800;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   margin-top: 1px;
-  text-shadow: 0 2px 10px rgba(255, 255, 255, 0.15);
 }
 
-/*
- * Dynamic speed slider styles to render inside the glassmorphic overlay.
- */
 .ysc-speed-toast-slider {
-  margin-top: 12px;
+  margin-top: 10px;
   width: 100%;
 }
 
@@ -196,9 +178,7 @@ body > .ysc-speed-toast-visible {
 .ysc-speed-toast-slider-thumb {
   background: #ffffff;
   border-radius: 50%;
-  box-shadow: 
-    0 0 10px #ffffff,
-    0 2px 4px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.36);
   height: 10px;
   position: absolute;
   right: -5px;
@@ -207,8 +187,8 @@ body > .ysc-speed-toast-visible {
 }
 
 .ytp-big-mode .ysc-speed-toast {
-  min-height: 112px;
-  min-width: 172px;
+  min-height: 104px;
+  min-width: 160px;
   border-radius: 20px;
 }
 
@@ -299,14 +279,14 @@ body > .ysc-speed-toast-visible {
 }
 
 .ysc-speed-widget.ysc-speed-widget--floating[data-ysc-theme="dark"] {
-  background: rgba(14, 14, 18, .55);
-  border: 1px solid rgba(255, 255, 255, .1);
+  background: rgba(14, 15, 20, .64);
+  border: 0;
   color: #f4f4f5;
 }
 
 .ysc-speed-widget.ysc-speed-widget--floating[data-ysc-theme="light"] {
   background: rgba(255, 255, 255, .58);
-  border: 1px solid rgba(0, 0, 0, .06);
+  border: 0;
   box-shadow:
     0 4px 22px rgba(0, 0, 0, .12),
     inset 0 1px 0 rgba(255, 255, 255, .65);
@@ -397,13 +377,9 @@ body > .ysc-speed-toast-visible {
 }
 
 .ysc-speed-toast[data-ysc-theme="light"] {
-  /*
-   * Clean light mode glassmorphism using a white translucent background
-   * and a subtle dark border.
-   */
-  background: rgba(255, 255, 255, 0.74);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 
+  background: rgba(255, 255, 255, 0.78);
+  border: 0;
+  box-shadow:
     0 16px 48px rgba(18, 19, 26, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
   color: #12131a;
