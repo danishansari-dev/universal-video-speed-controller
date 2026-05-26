@@ -318,9 +318,17 @@ const renderSettings = () => {
     els.settingsGrid.append(label);
   }
 
-  els.startupSpeed.innerHTML = STARTUP_SPEEDS
-    .map((speed) => `<option value="${speed}">${formatRate(speed)}</option>`)
-    .join("");
+  // Clear any existing options in the select element
+  els.startupSpeed.innerHTML = "";
+  // Why this code exists:
+  // Dynamically populating options using safe DOM methods instead of innerHTML
+  // prevents unsafe assignment warnings and complies with store safety reviews.
+  for (const speed of STARTUP_SPEEDS) {
+    const option = document.createElement("option");
+    option.value = String(speed);
+    option.textContent = formatRate(speed);
+    els.startupSpeed.append(option);
+  }
   els.startupSpeed.value = String(state?.settings?.startupDefaultSpeed || 1);
 };
 
@@ -342,11 +350,25 @@ const renderShortcuts = () => {
     const card = document.createElement("div");
     card.className = "shortcut-card";
     card.classList.toggle("conflict", conflicts.has(action));
-    card.innerHTML = `
-      <div><strong>${name}</strong><span>${conflicts.has(action) ? "Shortcut conflict" : "Click keycap to edit"}</span></div>
-      <button class="keycap ${recordingAction === action ? "recording" : ""}" type="button">${recordingAction === action ? "Press keys" : shortcut.label}</button>
-    `;
-    card.querySelector("button").addEventListener("click", () => {
+
+    // Why this code exists:
+    // Building shortcut cards safely without innerHTML ensures strict compliance
+    // with browser extensions safety guidelines and avoids review rejections.
+    const textGroup = document.createElement("div");
+    const strong = document.createElement("strong");
+    strong.textContent = name;
+    const span = document.createElement("span");
+    span.textContent = conflicts.has(action) ? "Shortcut conflict" : "Click keycap to edit";
+    textGroup.append(strong, span);
+
+    const button = document.createElement("button");
+    button.className = `keycap ${recordingAction === action ? "recording" : ""}`;
+    button.type = "button";
+    button.textContent = recordingAction === action ? "Press keys" : shortcut.label;
+
+    card.append(textGroup, button);
+
+    button.addEventListener("click", () => {
       recordingAction = recordingAction === action ? null : action;
       renderShortcuts();
     });
