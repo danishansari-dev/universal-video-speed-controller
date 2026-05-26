@@ -1,6 +1,6 @@
 {
   "name": "youtube-speed-controller",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Playback speed controls for HTML5 video on any website",
   "type": "commonjs",
   "scripts": {
