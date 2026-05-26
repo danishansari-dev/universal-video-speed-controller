@@ -20,7 +20,7 @@
     "128": "assets/icons/icon-128.png"
   },
   "background": {
-    "service_worker": "background.js"
+    "scripts": ["background.js"]
   },
   "permissions": [
     "activeTab",
