@@ -66,7 +66,10 @@
   ],
   "browser_specific_settings": {
     "gecko": {
-      "id": "universal-video-speed-controller@danishansari.dev"
+      "id": "universal-video-speed-controller@danishansari.dev",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
     }
   }
 }
