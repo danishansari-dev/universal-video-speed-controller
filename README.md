@@ -105,6 +105,48 @@ If you want to run or test the extension locally:
 
 ---
 
+## Packaging for Web Stores
+
+To submit updates to the Chrome Web Store or Mozilla Add-ons portal, package the extension files into a zip archive. Since Chrome (Manifest V3) and Firefox (Manifest V2) utilize different configurations, follow the appropriate commands for your terminal:
+
+### For Google Chrome (Manifest V3)
+
+Create a zip archive containing the core extension code:
+
+#### Bash (macOS / Linux)
+```bash
+zip -r universal-video-speed-controller.zip manifest.json background.js constants.js content.js styles.css popup.html popup.css popup.js _locales assets/icons
+```
+
+#### PowerShell (Windows)
+```powershell
+Compress-Archive -Path manifest.json, background.js, constants.js, content.js, styles.css, popup.html, popup.css, popup.js, _locales, assets\icons -DestinationPath universal-video-speed-controller.zip -Force
+```
+
+### For Mozilla Firefox (Manifest V2)
+
+To compile for Firefox, copy the Firefox manifest configuration to `manifest.json` before zipping, then restore the original Chrome manifest:
+
+#### Bash (macOS / Linux)
+```bash
+# Backup Chrome manifest, copy Firefox manifest, zip, and restore Chrome manifest
+cp manifest.json manifest.chrome.json
+cp manifest.firefox.json manifest.json
+zip -r universal-video-speed-controller-firefox.zip manifest.json background.js constants.js content.js styles.css popup.html popup.css popup.js _locales assets/icons
+mv manifest.chrome.json manifest.json
+```
+
+#### PowerShell (Windows)
+```powershell
+# Backup Chrome manifest, copy Firefox manifest, zip, and restore Chrome manifest
+Copy-Item manifest.json manifest.chrome.json
+Copy-Item manifest.firefox.json manifest.json
+Compress-Archive -Path manifest.json, background.js, constants.js, content.js, styles.css, popup.html, popup.css, popup.js, _locales, assets\icons -DestinationPath universal-video-speed-controller-firefox.zip -Force
+Move-Item -Path manifest.chrome.json -Destination manifest.json -Force
+```
+
+---
+
 ## Contributing Guide
 
 We welcome contributions from the community! To help maintain code quality and security, please follow these guidelines when submitting pull requests:
