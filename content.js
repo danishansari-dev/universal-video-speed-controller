@@ -298,6 +298,9 @@
       this.siteAccessMode = "all";
       this.siteAccessList = [];
       this.defaultNativeMode = "override";
+      // Why this exists:
+      // Stores whether the user has dismissed the store review prompt to prevent showing it again.
+      this.reviewPromptDismissed = false;
       this.saveTimer = null;
     }
 
@@ -487,7 +490,8 @@
               sitePolicies: this.normalizeSitePolicies(result[STORAGE_KEYS.sitePolicies]),
               siteAccessMode: ["all", "whitelist", "blacklist"].includes(result[STORAGE_KEYS.siteAccessMode]) ? result[STORAGE_KEYS.siteAccessMode] : "all",
               siteAccessList: this.normalizeAccessList(result[STORAGE_KEYS.siteAccessList]),
-              defaultNativeMode: ["override", "sync"].includes(result[STORAGE_KEYS.defaultNativeMode]) ? result[STORAGE_KEYS.defaultNativeMode] : "override"
+              defaultNativeMode: ["override", "sync"].includes(result[STORAGE_KEYS.defaultNativeMode]) ? result[STORAGE_KEYS.defaultNativeMode] : "override",
+              reviewPromptDismissed: result[STORAGE_KEYS.reviewPromptDismissed] === true
             });
           });
         } catch {
@@ -534,7 +538,8 @@
         sitePolicies: {},
         siteAccessMode: "all",
         siteAccessList: [],
-        defaultNativeMode: "override"
+        defaultNativeMode: "override",
+        reviewPromptDismissed: false
       };
     }
 
@@ -626,6 +631,12 @@
         case "defaultNativeMode":
           this.defaultNativeMode = ["override", "sync"].includes(value) ? value : "override";
           this.saveSetting(STORAGE_KEYS.defaultNativeMode, this.defaultNativeMode);
+          break;
+        case "reviewPromptDismissed":
+          // Why this exists:
+          // Persists the user's dismissal of the review solicitation card.
+          this.reviewPromptDismissed = Boolean(value);
+          this.saveSetting(STORAGE_KEYS.reviewPromptDismissed, this.reviewPromptDismissed);
           break;
         default:
           return false;
@@ -3273,6 +3284,9 @@
       return {
         status,
         enabled: this.settings.enabled,
+        // Why this exists:
+        // Passed to the popup state to conditionally render the review prompt card.
+        reviewPromptDismissed: this.settings.reviewPromptDismissed,
         hasVideo,
         rate,
         preferredRate: this.settings.rate,
