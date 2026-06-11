@@ -81,7 +81,11 @@ const els = {
   accessModeSelect: $("#accessModeSelect"),
   accessListInput: $("#accessListInput"),
   saveAccessList: $("#saveAccessList"),
-  sitePanelHint: $("#sitePanelHint")
+  sitePanelHint: $("#sitePanelHint"),
+  reviewPromptCard: $("#reviewPromptCard"),
+  promptTimeSaved: $("#promptTimeSaved"),
+  rateBtn: $("#rateBtn"),
+  dismissReviewBtn: $("#dismissReviewBtn")
 };
 
 let activeTabId = null;
@@ -254,12 +258,28 @@ const shortcutFromEvent = (event, existing = {}) => ({
   label: existing.hold ? `${shortcutLabelFromEvent(event)} (hold)` : shortcutLabelFromEvent(event)
 });
 
+/**
+ * Detects conflicts among defined shortcuts.
+ * 
+ * Why this code exists:
+ * Users can customize keyboard shortcuts, but we must prevent assigning the same 
+ * key combination to multiple actions. Unassigned/empty shortcuts are excluded from 
+ * conflict detection.
+ * 
+ * @danishansari-dev
+ * @returns {Set<string>} A set of action names that are in conflict.
+ */
 const getConflicts = () => {
   const seen = new Map();
   const conflicts = new Set();
 
   for (const [action, shortcut] of Object.entries(shortcuts)) {
     const signature = shortcutSignature(shortcut);
+
+    // If the shortcut is unassigned (empty signature), do not flag as conflict
+    if (!signature) {
+      continue;
+    }
 
     if (seen.has(signature)) {
       conflicts.add(action);
@@ -418,6 +438,23 @@ const renderState = () => {
   els.mostUsed.textContent = state?.analytics?.mostUsedSpeed || formatRate(rate);
   els.dailyUsage.textContent = formatDuration(state?.analytics?.dailyUsageSeconds);
   els.sessionAverage.textContent = formatRate(state?.analytics?.sessionAverageSpeed || rate);
+
+  // Why this exists:
+  // Conditionally renders the store review solicitation card once the user has saved at least 1 hour of time.
+  const timeSavedSec = state?.analytics?.timeSavedSeconds || 0;
+  const reviewPromptDismissed = Boolean(state?.reviewPromptDismissed);
+  if (timeSavedSec >= 3600 && !reviewPromptDismissed) {
+    els.promptTimeSaved.textContent = formatDuration(timeSavedSec);
+    const isFirefox = typeof chrome !== "undefined" && chrome.runtime?.getURL && chrome.runtime.getURL("").startsWith("moz-extension");
+    if (isFirefox) {
+      els.rateBtn.href = "https://addons.mozilla.org/en-US/firefox/addon/universal-video-speed-ctrl/";
+    } else {
+      els.rateBtn.href = "https://chromewebstore.google.com/detail/" + chrome.runtime.id;
+    }
+    els.reviewPromptCard.hidden = false;
+  } else {
+    els.reviewPromptCard.hidden = true;
+  }
 
   shortcuts = state?.shortcuts || shortcuts;
   renderTheme();
@@ -620,6 +657,9 @@ const bootstrapFallbackState = async () => {
       startupDefaultSpeed: clampRate(values["youtubeSpeedController.startupDefaultSpeed"] || 1),
       defaultNativeMode: values["youtubeSpeedController.defaultNativeMode"] === "sync" ? "sync" : "override"
     },
+    // Why this exists:
+    // Tracks fallback prompt dismissal status in the local state in case the content script is disconnected.
+    reviewPromptDismissed: values["youtubeSpeedController.reviewPromptDismissed"] === true,
     shortcuts: values["youtubeSpeedController.shortcuts"] || cloneDefaultShortcuts(),
     video: { title: "", duration: 0, currentTime: 0, paused: true },
     tab: {
@@ -705,6 +745,11 @@ const stopPolling = () => {
 els.enabledToggle.addEventListener("change", (event) => updateSetting("enabled", event.target.checked));
 els.startupSpeed.addEventListener("change", (event) => updateSetting("startupDefaultSpeed", Number(event.target.value)));
 els.defaultNativeMode.addEventListener("change", (event) => updateSetting("defaultNativeMode", event.target.value));
+els.dismissReviewBtn.addEventListener("click", async () => {
+  // Why this exists:
+  // Saves reviewPromptDismissed = true to local storage to prevent showing the rating prompt card.
+  await updateSetting("reviewPromptDismissed", true);
+});
 els.siteNativeMode.addEventListener("change", async (event) => {
   const responded = await sendMessage({ type: "YSC_SET_SITE_NATIVE_MODE", mode: event.target.value });
 
