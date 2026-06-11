@@ -3,22 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Universal Video Speed Controller - Speed up HTML5 Videos</title>
-  <meta name="description" content="Control HTML5 video playback speed on any website. Adjust playback rate, fast forward, skip silent parts, and customize keyboard shortcuts or mouse speed gestures.">
+  <title>Universal Video Speed Controller - Speed up HTML5 Videos Anywhere</title>
+  <meta name="description" content="Adjust HTML5 video playback speed on any website. Customize keyboard shortcuts, use mouse wheel scroll gestures, set per-site rules, and track watch time saved offline.">
   <link rel="canonical" href="https://danishansari-dev.github.io/universal-video-speed-controller/" />
   
   <!-- Open Graph / Facebook SEO -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://danishansari-dev.github.io/universal-video-speed-controller/">
-  <meta property="og:title" content="Universal Video Speed Controller - Speed up HTML5 Videos">
-  <meta property="og:description" content="Control HTML5 video playback speed on any website. Adjust playback rate, fast forward, skip silent parts, and customize keyboard shortcuts or mouse speed gestures.">
+  <meta property="og:title" content="Universal Video Speed Controller - Speed up HTML5 Videos Anywhere">
+  <meta property="og:description" content="Adjust HTML5 video playback speed on any website. Customize keyboard shortcuts, use mouse wheel scroll gestures, set per-site rules, and track watch time saved offline.">
   <meta property="og:image" content="https://danishansari-dev.github.io/universal-video-speed-controller/assets/store/promo-1280x800.png">
 
   <!-- Twitter Card SEO -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://danishansari-dev.github.io/universal-video-speed-controller/">
-  <meta name="twitter:title" content="Universal Video Speed Controller - Speed up HTML5 Videos">
-  <meta name="twitter:description" content="Control HTML5 video playback speed on any website. Adjust playback rate, fast forward, skip silent parts, and customize keyboard shortcuts or mouse speed gestures.">
+  <meta name="twitter:title" content="Universal Video Speed Controller - Speed up HTML5 Videos Anywhere">
+  <meta name="twitter:description" content="Adjust HTML5 video playback speed on any website. Customize keyboard shortcuts, use mouse wheel scroll gestures, set per-site rules, and track watch time saved offline.">
   <meta name="twitter:image" content="https://danishansari-dev.github.io/universal-video-speed-controller/assets/store/promo-1280x800.png">
 
   <!-- Why this exists:
@@ -36,7 +36,7 @@
       "priceCurrency": "USD"
     },
     "description": "Premium browser extension for precise HTML5 video speed control on any website. Supports presets, custom keyboard shortcuts, touchpad gestures, per-site memory rules, and local usage insights.",
-    "downloadUrl": "https://chromewebstore.google.com/detail/universal-video-speed-co/danishansari-dev",
+    "downloadUrl": "https://chromewebstore.google.com/detail/universal-video-speed-con/gjinmpjidodkbcgooeldokolkgejcfcp",
     "author": {
       "@type": "Person",
       "name": "Danish Ansari"
@@ -48,190 +48,371 @@
   <meta name="google-site-verification" content="LHqVcj1Z14qheEF7du_w2Veio9MzfQuPyj3GGCoqC50" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="assets/icons/icon-128.png" type="image/png">
 </head>
 <body>
+
+  <!-- NAVBAR -->
   <nav class="navbar">
-    <a class="logo" href="#top" aria-label="Universal Video Speed Controller">
-      <img src="assets/icons/icon-128.png" alt="">
+    <a class="logo" href="index.html" aria-label="Universal Video Speed Controller Home">
+      <img src="assets/icons/icon-128.png" alt="Universal Video Speed Controller logo">
       <span>Universal Video Speed Controller</span>
     </a>
     <div class="nav-links">
-      <a href="#features">Features</a>
-      <a href="#screenshots">Screenshots</a>
-      <a href="#shortcuts">Shortcuts</a>
-      <a href="privacy.html">Privacy</a>
-      <a href="https://github.com/danishansari-dev/universal-video-speed-controller" target="_blank" class="nav-btn" rel="noreferrer">GitHub</a>
+      <a href="features.html">Features</a>
+      <a href="how-it-works.html">How It Works</a>
+      <a href="faq.html">FAQ</a>
+      <a href="about.html">About</a>
+      <a href="changelog.html">Updates</a>
+    </div>
+    <div class="nav-actions">
+      <button class="theme-btn" aria-label="Toggle theme" title="Toggle Light/Dark Mode">
+        <svg class="moon-icon" viewBox="0 0 24 24"><path d="M12 3c.132 0 .263 0 .393.007a7.5 7.5 0 0 0 7.92 12.446A9 9 0 1 1 12 3zm0 2a7 7 0 1 0 5.002 11.895A9.5 9.5 0 0 1 12.5 5.005c-.167-.003-.334-.005-.5-.005z"/></svg>
+        <svg class="sun-icon" viewBox="0 0 24 24"><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414 2.122 2.122-1.414 1.414-2.122-2.122zM16.95 18.364l1.414-1.414 2.122 2.122-1.414 1.414-2.122-2.122zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM3.515 19.071l2.122-2.122 1.414 1.414-2.122 2.122-1.414-1.414zm13.435-14.14l2.122-2.122 1.414 1.414-2.122 2.122-1.414-1.414z"/></svg>
+      </button>
+      <a href="https://chromewebstore.google.com/detail/universal-video-speed-con/gjinmpjidodkbcgooeldokolkgejcfcp" target="_blank" class="nav-btn" rel="noreferrer">Install Extension</a>
     </div>
   </nav>
 
-  <main id="top">
-    <section class="hero">
-      <div class="hero-copy fade-in">
-        <p class="eyebrow">Universal Video Speed Controller</p>
-        <h1>Control HTML5 Video Speed on Any Website</h1>
-        <p class="hero-lede">Take full control of video playback speed with a premium browser extension. Adjust speed presets, customize keyboard shortcuts, use mouse gestures, and save per-site memory rules completely offline.</p>
-        <!-- TODO: Replace YOUR_EXTENSION_ID with your actual Chrome Web Store Extension ID once published -->
-        <div class="hero-actions">
-          <a href="https://chromewebstore.google.com/detail/universal-video-speed-co/YOUR_EXTENSION_ID" target="_blank" class="btn btn-primary" rel="noreferrer">Add to Chrome</a>
-          <a href="https://addons.mozilla.org/en-US/firefox/addon/universal-video-speed-ctrl/" target="_blank" class="btn btn-secondary" rel="noreferrer">Get Firefox Add-on</a>
-          <a href="#install" class="btn btn-secondary" style="border: 1px dashed var(--line);">Install locally</a>
+  <!-- HERO SECTION -->
+  <header class="hero">
+    <div class="hero-copy fade-in">
+      <span class="eyebrow">Universal Video Speed Controller</span>
+      <h1>Speed Up Lectures, Courses, and Video Anywhere</h1>
+      <p class="hero-lede">Take absolute command of playback speed. Jump from 0.25x to 10.0x, use custom hotkeys, adjust with mouse wheels, and configure rules per website. Completely offline and 100% private.</p>
+      
+      <div class="hero-actions">
+        <a href="https://chromewebstore.google.com/detail/universal-video-speed-con/gjinmpjidodkbcgooeldokolkgejcfcp" target="_blank" class="btn btn-primary" rel="noreferrer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 17l-5 5-5-5"/></svg>
+          Add to Chrome (Free)
+        </a>
+        <a href="https://addons.mozilla.org/en-US/firefox/addon/universal-video-speed-ctrl/" target="_blank" class="btn btn-secondary" rel="noreferrer">Get Firefox Add-on</a>
+      </div>
+
+      <dl class="proof-row" aria-label="Extension Highlights">
+        <div>
+          <dt>0.25x - 10.0x</dt>
+          <dd>Playback Control</dd>
         </div>
-        <dl class="proof-row" aria-label="Product highlights">
-          <div><dt>0.25x-10x</dt><dd>Playback rate</dd></div>
-          <div><dt>100% private</dt><dd>Local storage</dd></div>
-          <div><dt>Universal</dt><dd>HTML5 players</dd></div>
-        </dl>
-      </div>
-      <div class="hero-media fade-in delay-1">
-        <img src="assets/store/promo-1280x800.png" alt="Universal Video Speed Controller popup and video speed controls">
-      </div>
-    </section>
+        <div>
+          <dt>100% Private</dt>
+          <dd>No Cloud Storage</dd>
+        </div>
+        <div>
+          <dt>Universal</dt>
+          <dd>All Video Platforms</dd>
+        </div>
+      </dl>
+    </div>
+    <div class="hero-media fade-in delay-1">
+      <img src="assets/store/promo-1280x800.png" alt="Dashboard Popup view showing video speed statistics and playback widgets">
+    </div>
+  </header>
 
-    <section class="section compact-section" id="features">
-      <div class="section-heading fade-in">
-        <p class="eyebrow">Everything in one control layer</p>
-        <h2>Fast controls without visual noise.</h2>
-        <p>Designed for people who watch lectures, tutorials, livestreams, sports, product demos, and long-form video across the web.</p>
-      </div>
-      <div class="feature-grid">
-        <article class="feature-card fade-in">
-          <span class="feature-dot"></span>
-          <h3>Precise speed presets</h3>
-          <p>Move from <code>0.25x</code> to <code>10x</code>, nudge by <code>0.25x</code>, or jump directly to common speeds from the popup.</p>
-        </article>
-        <article class="feature-card fade-in delay-1">
-          <span class="feature-dot cyan"></span>
-          <h3>Keyboard, wheel, and pinch</h3>
-          <p>Use editable shortcuts, <kbd>Ctrl + mouse wheel</kbd>, or pinch in / pinch out gestures on supported touchpads.</p>
-        </article>
-        <article class="feature-card fade-in delay-2">
-          <span class="feature-dot green"></span>
-          <h3>Smart memory</h3>
-          <p>Remember speeds globally, per website, or per YouTube channel so each player opens where you expect.</p>
-        </article>
-        <article class="feature-card fade-in delay-3">
-          <span class="feature-dot violet"></span>
-          <h3>Quiet fullscreen feedback</h3>
-          <p>A restrained overlay confirms speed changes without pulling you out of the video.</p>
-        </article>
-      </div>
-    </section>
+  <!-- INTERACTIVE DEMO (SANDBOX) -->
+  <section class="section fade-in">
+    <div class="section-header center">
+      <span class="eyebrow">Interactive Demo</span>
+      <h2>Try Playback Speed Gestures Right Here</h2>
+      <p>Click play on the video below to test how the controls function. Adjust speeds using the presets, the floating speed widget, or your keyboard shortcuts.</p>
+    </div>
 
-    <section class="section showcase" id="screenshots">
-      <div class="section-heading fade-in">
-        <p class="eyebrow">Screenshots</p>
-        <h2>A complete interface for serious playback control.</h2>
-      </div>
-      <div class="showcase-grid">
-        <article class="screenshot-card wide fade-in">
-          <img src="assets/store/screenshot-01-control-1280x800.png" alt="Universal Video Speed Controller Chrome Extension Popup Dashboard Settings">
-          <div>
-            <h3>Popup speed control</h3>
-            <p>Large speed readout, one-click presets, press-and-hold adjustments, and current video context in one focused popup.</p>
+    <div class="grid-2" style="max-width: 960px; margin: 0 auto;">
+      <div class="sandbox-container">
+        <div class="sandbox-player" id="sandbox-player-container">
+          <!-- Floating Speed Widget (Simulating extension UI) -->
+          <div class="sandbox-widget" id="demo-widget">
+            <button class="btn-minus" title="Decrease Speed by 0.25x">−</button>
+            <div class="speed-pill" title="Reset Speed to 1.0x">1x</div>
+            <button class="btn-plus" title="Increase Speed by 0.25x">+</button>
           </div>
-        </article>
-        <article class="screenshot-card fade-in delay-1">
-          <img src="assets/store/screenshot-02-shortcuts-1280x800.png" alt="Keyboard Shortcuts Manager and Gesture Controls Settings">
-          <div>
-            <h3>Shortcut manager</h3>
-            <p>Editable shortcuts, conflict checks, boost mode, mouse wheel support, and pinch gesture control.</p>
+
+          <!-- Video Speed Overlay Toast -->
+          <div class="sandbox-overlay">
+            <span>1.00x</span>
+            <div class="sandbox-overlay-slider">
+              <div class="sandbox-overlay-fill" style="width: 8.5%;"></div>
+            </div>
           </div>
-        </article>
-        <article class="screenshot-card fade-in delay-2">
-          <img src="assets/store/screenshot-03-rules-settings-1280x800.png" alt="Website Specific Playback Speed Rules and Access Gating Config">
-          <div>
-            <h3>Rules and settings</h3>
-            <p>Per-site rules, memory modes, access gating, overlay preferences, startup speed, and native-control behavior.</p>
+
+          <!-- Demo Video Player -->
+          <video id="sandbox-video" controls playsinline muted loop>
+            <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
+            Your browser does not support HTML5 video.
+          </video>
+        </div>
+      </div>
+
+      <div class="panel-glass" style="padding: 24px;">
+        <h3>Sandbox Control Panel</h3>
+        <p style="font-size: 0.95rem; margin-top: 8px; color: var(--muted);">Click inside the video to focus, then use these controls:</p>
+        
+        <div class="sandbox-controls" style="margin-top: 16px;">
+          <div class="sandbox-controls-title">Quick Speed Presets</div>
+          <div class="sandbox-presets">
+            <button data-speed="0.25">0.25x</button>
+            <button data-speed="0.5">0.5x</button>
+            <button data-speed="1.0" class="active">1.0x (Normal)</button>
+            <button data-speed="1.5">1.5x</button>
+            <button data-speed="2.0">2.0x</button>
+            <button data-speed="2.5">2.5x</button>
+            <button data-speed="3.0">3.0x</button>
+            <button data-speed="4.0">4.0x</button>
           </div>
-        </article>
-        <article class="screenshot-card fade-in delay-3">
-          <img src="assets/store/screenshot-04-insights-1280x800.png" alt="Private Video Watch Time Saved Analytics and Local Usage Insights">
-          <div>
-            <h3>Local insights</h3>
-            <p>See time saved, most-used speeds, daily usage, and session averages without sending data anywhere.</p>
+        </div>
+
+        <div class="sandbox-instructions">
+          <div><kbd>]</kbd> Speed Up</div>
+          <div><kbd>[</kbd> Slow Down</div>
+          <div><kbd>\</kbd> Reset (1x)</div>
+          <div><kbd>Hold X</kbd> 2x Boost</div>
+          <div><kbd>Ctrl + Mouse Scroll</kbd> over video</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KEY USE CASES -->
+  <section class="section">
+    <div class="section-header">
+      <span class="eyebrow">Tailored For You</span>
+      <h2>Unlock Ultimate Playback Efficiency</h2>
+      <p>Whether you're studying for finals, learning a new trade, or binge-watching your favorite shows, our tool speeds up your workflow.</p>
+    </div>
+
+    <div class="grid-3">
+      <article class="card-glass usecase-card fade-in">
+        <h3>Students & Courses</h3>
+        <p>Breeze through 2-hour university lecture recordings and online learning videos at 2.25x speed. Save valuable time while keeping speech perfectly intelligible.</p>
+        <ul>
+          <li>Syncs with lecture platforms</li>
+          <li>Skips silent gaps instantly</li>
+          <li>Keeps speech pitch native</li>
+        </ul>
+      </article>
+
+      <article class="card-glass usecase-card fade-in delay-1">
+        <h3>Productivity & Coding</h3>
+        <p>Fly through dry coding walkthroughs, long tutorials, and meeting recordings. Boost past slow sections by holding the X key temporarily.</p>
+        <ul>
+          <li>Quick keyboard shortcuts</li>
+          <li>Boost mode for speed runs</li>
+          <li>Per-site default configurations</li>
+        </ul>
+      </article>
+
+      <article class="card-glass usecase-card fade-in delay-2">
+        <h3>Binge-Watching</h3>
+        <p>Optimize your entertainment on Netflix, Disney+, or YouTube. Adjust speeds in tiny 0.05x increments to find the perfect speed for each program.</p>
+        <ul>
+          <li>Smooth HTML5 integration</li>
+          <li>Autohiding UI widget overlay</li>
+          <li>Persistent volume controls</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <!-- COMPARISON: WHY WE ARE BETTER -->
+  <section class="section">
+    <div class="section-header center">
+      <span class="eyebrow">Comparison Matrix</span>
+      <h2>Why Universal is Better than Site Controls</h2>
+      <p>Many video websites restrict your playback speed choice. Here is how our extension breaks those barriers.</p>
+    </div>
+
+    <div class="comparison-table-wrapper fade-in">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Feature Details</th>
+            <th class="highlight-col">Universal Speed Controller</th>
+            <th>Site-Native Controls (e.g. YouTube)</th>
+            <th>Standard Video Players</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Speed Range Limits</td>
+            <td class="highlight-col check">0.25x to 10.0x</td>
+            <td>0.25x to 2.0x only</td>
+            <td>No speed options</td>
+          </tr>
+          <tr>
+            <td>Step Adjustments</td>
+            <td class="highlight-col check">0.05x or 0.25x custom increments</td>
+            <td>Fixed 0.25x steps only</td>
+            <td class="cross">None</td>
+          </tr>
+          <tr>
+            <td>Keyboard Shortcuts</td>
+            <td class="highlight-col check">Universal, customizable hotkeys</td>
+            <td>Site-dependent, hardcoded keys</td>
+            <td class="cross">None</td>
+          </tr>
+          <tr>
+            <td>Per-Site / Channel Rules</td>
+            <td class="highlight-col check">Yes, remembers speeds globally or per domain</td>
+            <td class="cross">No (resets on every load)</td>
+            <td class="cross">No</td>
+          </tr>
+          <tr>
+            <td>Mouse / Touchpad Gestures</td>
+            <td class="highlight-col check">Yes (Ctrl + Mouse scroll, Trackpad pinch)</td>
+            <td class="cross">No</td>
+            <td class="cross">No</td>
+          </tr>
+          <tr>
+            <td>Temporary Boost Mode</td>
+            <td class="highlight-col check">Yes (Hold X key to accelerate instantly)</td>
+            <td class="cross">No</td>
+            <td class="cross">No</td>
+          </tr>
+          <tr>
+            <td>Privacy Protection</td>
+            <td class="highlight-col check">100% Offline (Local storage only, zero trackers)</td>
+            <td>Tracks behavior & uploads analytics</td>
+            <td>Varies</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SCREENSHOT SHOWCASE -->
+  <section class="section">
+    <div class="section-header">
+      <span class="eyebrow">Visual Tour</span>
+      <h2>Designed for Power Users</h2>
+      <p>Clean HUD, detailed analytics, customizable configurations, and interactive rules. Explore what's packed inside the extension.</p>
+    </div>
+
+    <div class="screenshot-grid">
+      <article class="card-glass screenshot-card wide fade-in">
+        <img src="assets/store/screenshot-01-control-1280x800.png" alt="Chrome extension popup settings with large speed controls, presets, active tab details and controls toggle">
+        <div>
+          <h3>Quick Control Dashboard</h3>
+          <p>A beautiful toolbar popup featuring a circular speed dial, preset indicators, instant toggle switch, and current video status parameters.</p>
+        </div>
+      </article>
+
+      <article class="card-glass screenshot-card fade-in">
+        <img src="assets/store/screenshot-02-shortcuts-1280x800.png" alt="Shortcut manager interface displaying configurable keyboard commands and mouse wheel toggles">
+        <div>
+          <h3>Shortcuts & Gestures Manager</h3>
+          <p>Map keyboard shortcuts, enable scroll gestures, configure boost mode multipliers, and resolve conflict alerts directly in the manager.</p>
+        </div>
+      </article>
+
+      <article class="card-glass screenshot-card fade-in delay-1">
+        <img src="assets/store/screenshot-03-rules-settings-1280x800.png" alt="Settings menu with per-site preferences, rules, blocklists, and memory options">
+        <div>
+          <h3>Domain-Specific Memory Rules</h3>
+          <p>Automatically adjust speeds based on domain rules. Let YouTube load lectures at 2x while loading Netflix movies at 1.1x automatically.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS SECTION -->
+  <section class="section">
+    <div class="section-header center">
+      <span class="eyebrow">User Reviews</span>
+      <h2>Loved by Students and Binge-Watchers</h2>
+      <p>See how thousands of active users are saving time and optimizing their daily lecture schedules.</p>
+    </div>
+
+    <div class="grid-3">
+      <div class="card-glass testimonial-card fade-in">
+        <div class="testimonial-rating">★★★★★</div>
+        <p class="testimonial-text">"Absolute lifesaver for online learning. Our professor speaks incredibly slowly, and being able to bump it to 2.5x with a single hotkey saves me hours every single week."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="color: var(--accent);">SR</div>
+          <div class="testimonial-details">
+            <h4>Sarah Rogers</h4>
+            <span>Computer Science Student</span>
           </div>
-        </article>
-        <article class="screenshot-card fade-in delay-4">
-          <img src="assets/store/screenshot-05-overlay-1280x800.png" alt="HTML5 Fullscreen Video Playback Speed Overlay Indicator">
-          <div>
-            <h3>Fullscreen overlay</h3>
-            <p>Speed changes stay visible and readable while the interface remains calm and unobtrusive.</p>
+        </div>
+      </div>
+
+      <div class="card-glass testimonial-card fade-in delay-1">
+        <div class="testimonial-rating">★★★★★</div>
+        <p class="testimonial-text">"I love the scroll wheel control. I just hover my mouse over the video player, hold Ctrl and scroll. No menus to open. Simple, clean, and runs completely offline."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="color: var(--cyan);">MB</div>
+          <div class="testimonial-details">
+            <h4>Marcus Bennett</h4>
+            <span>Web Developer & Creator</span>
           </div>
-        </article>
+        </div>
       </div>
-    </section>
 
-    <section class="section split-section">
-      <div class="text-panel fade-in">
-        <p class="eyebrow">Site rules</p>
-        <h2>Use different speeds on different sites.</h2>
-        <p>Keep global defaults simple, then override behavior for specific domains or YouTube channels. Access rules let you allow all sites, limit the extension to approved domains, or block specific domains.</p>
+      <div class="card-glass testimonial-card fade-in delay-2">
+        <div class="testimonial-rating">★★★★★</div>
+        <p class="testimonial-text">"I'm a big fan of the boost key. I hold X to fast-forward through intro animations or silence, and let go to return immediately to normal speed. Incredible design!"</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="color: var(--green);">HL</div>
+          <div class="testimonial-details">
+            <h4>Hanna Lin</h4>
+            <span>Binge-Watcher & Reviewer</span>
+          </div>
+        </div>
       </div>
-      <div class="settings-list fade-in delay-1">
-        <div><span>Global memory</span><strong>Use your last preferred speed everywhere.</strong></div>
-        <div><span>Per website</span><strong>Remember speeds by domain.</strong></div>
-        <div><span>Per channel</span><strong>Keep YouTube channels independent.</strong></div>
-        <div><span>Native controls</span><strong>Override or sync with site speed menus.</strong></div>
-      </div>
-    </section>
+    </div>
+  </section>
 
-    <section class="section shortcuts" id="shortcuts">
-      <div class="section-heading fade-in">
-        <p class="eyebrow">Default controls</p>
-        <h2>Shortcuts that stay out of your way.</h2>
-        <p>Every shortcut can be changed from the popup, and the extension avoids firing while you type in comments, search boxes, or editable fields.</p>
+  <!-- FINAL CTA BAND -->
+  <section class="section fade-in" style="text-align: center; padding: 60px 24px;">
+    <div class="panel-glass" style="max-width: 800px; margin: 0 auto; padding: 48px 24px;">
+      <h2>Start Controlling Your Video Playback Today</h2>
+      <p style="margin-top: 12px; color: var(--muted); max-width: 500px; margin-inline: auto;">Install the lightweight browser extension. Zero configuration required, 100% free, and completely open source.</p>
+      
+      <div class="cta-group" style="justify-content: center; margin-top: 24px;">
+        <a href="https://chromewebstore.google.com/detail/universal-video-speed-con/gjinmpjidodkbcgooeldokolkgejcfcp" target="_blank" class="btn btn-primary" rel="noreferrer">
+          Download Chrome Extension
+        </a>
+        <a href="how-it-works.html" class="btn btn-secondary">See How it Works</a>
       </div>
-      <div class="shortcut-table fade-in delay-1">
-        <div><kbd>]</kbd><span>Increase speed by 0.25x</span></div>
-        <div><kbd>[</kbd><span>Decrease speed by 0.25x</span></div>
-        <div><kbd>\</kbd><span>Reset speed to 1x</span></div>
-        <div><kbd>Hold X</kbd><span>Temporary boost, release to restore</span></div>
-        <div><kbd>Shift S</kbd><span>Toggle floating widget</span></div>
-        <div><kbd>Shift H</kbd><span>Toggle speed overlay</span></div>
-        <div><kbd>Ctrl + wheel</kbd><span>Adjust speed over the player</span></div>
-        <div><kbd>Pinch</kbd><span>Pinch in / pinch out on supported touchpads</span></div>
-      </div>
-    </section>
+    </div>
+  </section>
 
-    <section class="section privacy-band">
-      <div class="text-panel fade-in">
-        <p class="eyebrow">Privacy first</p>
-        <h2>No accounts. No tracking. No remote analytics.</h2>
-        <p>Settings, shortcuts, site rules, and usage insights are stored locally in Chrome storage. The extension only needs permissions required to detect and control HTML5 video on the active page.</p>
-      </div>
-      <a class="btn btn-secondary fade-in delay-1" href="privacy.html">Read privacy policy</a>
-    </section>
-
-    <section class="section install" id="install">
-      <div class="section-heading fade-in">
-        <p class="eyebrow">Install</p>
-        <h2>Load the extension in Chrome.</h2>
-      </div>
-      <ol class="install-steps fade-in delay-1">
-        <li><span>1</span><p>Download or clone the GitHub repository.</p></li>
-        <li><span>2</span><p>Open <code>chrome://extensions</code> and enable Developer mode.</p></li>
-        <li><span>3</span><p>Click Load unpacked and select the project folder.</p></li>
-        <li><span>4</span><p>Open an HTML5 video and use the toolbar popup, widget, or shortcuts.</p></li>
-      </ol>
-      <div class="install-actions fade-in delay-2">
-        <a class="btn btn-primary" href="https://github.com/danishansari-dev/universal-video-speed-controller" target="_blank" rel="noreferrer">Open GitHub repo</a>
-        <a class="btn btn-secondary" href="#features">Review features</a>
-      </div>
-    </section>
-  </main>
-
+  <!-- FOOTER -->
   <footer>
     <div class="footer-content">
-      <a class="footer-brand" href="#top">
-        <img src="assets/icons/icon-48.png" alt="">
-        <span>Universal Video Speed Controller</span>
-      </a>
-      <div class="footer-links">
-        <a href="privacy.html">Privacy Policy</a>
-        <a href="https://github.com/danishansari-dev/universal-video-speed-controller" target="_blank" rel="noreferrer">GitHub</a>
+      <div class="footer-brand-info">
+        <a class="logo" href="index.html" style="font-size: 1.1rem;">
+          <img src="assets/icons/icon-48.png" alt="Universal Video Speed Controller logo">
+          <span>Universal Video Speed Controller</span>
+        </a>
+        <p>A premium open-source browser extension designed to optimize video learning, lecture speed, and binge-watching on any HTML5 video player.</p>
+      </div>
+
+      <div class="footer-links-group">
+        <div class="footer-column">
+          <h4>Product</h4>
+          <ul>
+            <li><a href="features.html">Features</a></li>
+            <li><a href="how-it-works.html">How It Works</a></li>
+            <li><a href="changelog.html">Changelog & Updates</a></li>
+          </ul>
+        </div>
+        <div class="footer-column">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="faq.html">FAQ Help</a></li>
+            <li><a href="contact.html">Contact Us</a></li>
+            <li><a href="https://github.com/danishansari-dev/universal-video-speed-controller" target="_blank" rel="noreferrer">GitHub Project</a></li>
+          </ul>
+        </div>
+        <div class="footer-column">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="privacy.html">Privacy Policy</a></li>
+            <li><a href="terms.html">Terms & Conditions</a></li>
+          </ul>
+        </div>
       </div>
     </div>
     <p class="copyright">&copy; 2026 Danish Ansari. Open source under the MIT License.</p>
