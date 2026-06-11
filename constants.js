@@ -35,7 +35,8 @@ const YSC_STORAGE_KEYS = Object.freeze({
   sitePolicies: "youtubeSpeedController.sitePolicies",
   siteAccessMode: "youtubeSpeedController.siteAccessMode",
   siteAccessList: "youtubeSpeedController.siteAccessList",
-  defaultNativeMode: "youtubeSpeedController.defaultNativeMode"
+  defaultNativeMode: "youtubeSpeedController.defaultNativeMode",
+  reviewPromptDismissed: "youtubeSpeedController.reviewPromptDismissed"
 });
 
 const YSC_DEFAULT_SHORTCUTS = Object.freeze({
