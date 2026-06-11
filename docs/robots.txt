@@ -1,0 +1,8 @@
+# Why this exists:
+# Directs search engine crawlers (Googlebot, Bingbot, etc.) on what paths they are allowed to index.
+# Maps sitemap.xml to improve index coverage.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://danishansari-dev.github.io/universal-video-speed-controller/sitemap.xml
