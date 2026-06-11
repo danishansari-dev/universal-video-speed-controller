@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Changelog & Updates - Universal Video Speed Controller</title>
+  <meta name="description" content="Track version releases, feature updates, bug fixes, and development milestones for the open-source extension.">
+  <link rel="canonical" href="https://danishansari-dev.github.io/universal-video-speed-controller/changelog.html" />
+  
+  <!-- Open Graph / Facebook SEO -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://danishansari-dev.github.io/universal-video-speed-controller/changelog.html">
+  <meta property="og:title" content="Changelog & Updates - Universal Video Speed Controller">
+  <meta property="og:description" content="Track version releases, feature updates, bug fixes, and development milestones for the open-source extension.">
+  <meta property="og:image" content="https://danishansari-dev.github.io/universal-video-speed-controller/assets/store/promo-1280x800.png">
+
+  <!-- Twitter Card SEO -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://danishansari-dev.github.io/universal-video-speed-controller/changelog.html">
+  <meta name="twitter:title" content="Changelog & Updates - Universal Video Speed Controller">
+  <meta name="twitter:description" content="Track version releases, feature updates, bug fixes, and development milestones for the open-source extension.">
+  <meta name="twitter:image" content="https://danishansari-dev.github.io/universal-video-speed-controller/assets/store/promo-1280x800.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="assets/icons/icon-128.png" type="image/png">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a class="logo" href="index.html" aria-label="Universal Video Speed Controller Home">
+      <img src="assets/icons/icon-128.png" alt="Universal Video Speed Controller logo">
+      <span>Universal Video Speed Controller</span>
+    </a>
+    <div class="nav-links">
+      <a href="features.html">Features</a>
+      <a href="how-it-works.html">How It Works</a>
+      <a href="faq.html">FAQ</a>
+      <a href="about.html">About</a>
+      <a href="changelog.html" class="active">Updates</a>
+    </div>
+    <div class="nav-actions">
+      <button class="theme-btn" aria-label="Toggle theme" title="Toggle Light/Dark Mode">
+        <svg class="moon-icon" viewBox="0 0 24 24"><path d="M12 3c.132 0 .263 0 .393.007a7.5 7.5 0 0 0 7.92 12.446A9 9 0 1 1 12 3zm0 2a7 7 0 1 0 5.002 11.895A9.5 9.5 0 0 1 12.5 5.005c-.167-.003-.334-.005-.5-.005z"/></svg>
+        <svg class="sun-icon" viewBox="0 0 24 24"><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414 2.122 2.122-1.414 1.414-2.122-2.122zM16.95 18.364l1.414-1.414 2.122 2.122-1.414 1.414-2.122-2.122zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM3.515 19.071l2.122-2.122 1.414 1.414-2.122 2.122-1.414-1.414zm13.435-14.14l2.122-2.122 1.414 1.414-2.122 2.122-1.414-1.414z"/></svg>
+      </button>
+      <a href="https://chromewebstore.google.com/detail/universal-video-speed-con/gjinmpjidodkbcgooeldokolkgejcfcp" target="_blank" class="nav-btn" rel="noreferrer">Install Extension</a>
+    </div>
+  </nav>
+
+  <!-- CHANGELOG CONTAINER -->
+  <main class="container-page fade-in">
+    <h1>Version Changelog & Roadmap</h1>
+    <p class="meta">Follow our update timeline, releases, and upcoming milestones.</p>
+
+    <div class="timeline">
+      
+      <!-- VERSION 1.2.0 -->
+      <article class="timeline-item">
+        <div class="timeline-version">Version 1.2.0</div>
+        <div class="timeline-date">Released: June 1, 2026</div>
+        <div class="card-glass timeline-content">
+          <h3>Manifest V3 Refactoring & Local Insights</h3>
+          <p>This release introduces major under-the-hood performance updates and offline telemetry metrics:</p>
+          <ul>
+            <li><strong>Local Insights Panel</strong>: Calculates time saved and session watch metrics locally (no remote logging).</li>
+            <li><strong>Pinch-to-Adjust Gestures</strong>: Pinch in or out on trackpads to adjust speeds fluidly.</li>
+            <li><strong>Shadow DOM Support</strong>: Improved video detector scanning inside custom shadow root boundaries (e.g. customized video players).</li>
+            <li><strong>Memory optimizations</strong>: Replaced periodic page polling with target Mutex MutationObservers. CPU overhead is decreased by 40%.</li>
+            <li><strong>Clean Context teardown</strong>: Standardized cleanup loops during hot extension reloads to avoid duplicated listeners.</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- VERSION 1.1.0 -->
+      <article class="timeline-item">
+        <div class="timeline-version">Version 1.1.0</div>
+        <div class="timeline-date">Released: March 14, 2026</div>
+        <div class="card-glass timeline-content">
+          <h3>Interactive Widgets & Scroll Controls</h3>
+          <p>Introduced overlay elements and mouse hover adjustments:</p>
+          <ul>
+            <li><strong>Floating Widget</strong>: Adds an overlay bar next to the video player for mouse users (includes autohide support).</li>
+            <li><strong>Ctrl + Scroll Adjustments</strong>: Adjust speed increments by scrolling your mouse wheel while holding Ctrl over video targets.</li>
+            <li><strong>Shortcut Manager Card UI</strong>: Interactive settings dashboard page mapping keyboard hotkey bindings.</li>
+            <li><strong>Fullscreen Toast HUD</strong>: Center overlay HUD displaying speed values and percentage sliders during fullscreen.</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- VERSION 1.0.0 -->
+      <article class="timeline-item">
+        <div class="timeline-version">Version 1.0.0</div>
+        <div class="timeline-date">Released: December 10, 2025</div>
+        <div class="card-glass timeline-content">
+          <h3>Initial Open-Source Release</h3>
+          <p>Initial release of the universal playback controller engine:</p>
+          <ul>
+            <li>Core injection speed adjustment engine working on HTML5 video players.</li>
+            <li>Default speed keys: <code>]</code> (increase), <code>[</code> (decrease), and <code>\</code> (reset).</li>
+            <li>Popup speed panel including presets and status indicators.</li>
+            <li>Offline settings persistence via Chrome Local Storage API.</li>
+          </ul>
+        </div>
+      </article>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-brand-info">
+        <a class="logo" href="index.html" style="font-size: 1.1rem;">
+          <img src="assets/icons/icon-48.png" alt="Universal Video Speed Controller logo">
+          <span>Universal Video Speed Controller</span>
+        </a>
+        <p>A premium open-source browser extension designed to optimize video learning, lecture speed, and binge-watching on any HTML5 video player.</p>
+      </div>
+
+      <div class="footer-links-group">
+        <div class="footer-column">
+          <h4>Product</h4>
+          <ul>
+            <li><a href="features.html">Features</a></li>
+            <li><a href="how-it-works.html">How It Works</a></li>
+            <li><a href="changelog.html">Changelog & Updates</a></li>
+          </ul>
+        </div>
+        <div class="footer-column">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="faq.html">FAQ Help</a></li>
+            <li><a href="contact.html">Contact Us</a></li>
+            <li><a href="https://github.com/danishansari-dev/universal-video-speed-controller" target="_blank" rel="noreferrer">GitHub Project</a></li>
+          </ul>
+        </div>
+        <div class="footer-column">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="privacy.html">Privacy Policy</a></li>
+            <li><a href="terms.html">Terms & Conditions</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <p class="copyright">&copy; 2026 Danish Ansari. Open source under the MIT License.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
