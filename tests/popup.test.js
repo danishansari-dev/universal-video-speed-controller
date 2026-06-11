@@ -145,4 +145,24 @@ describe("popup.js tests", () => {
     expect(document.getElementById("domainText").textContent).toBe("youtube.com");
     expect(document.getElementById("timeSaved").textContent).toBe("2m");
   });
+
+  test("popup handles shortcut conflict warning correctly", () => {
+    // 1. By default with only default shortcuts (presets unassigned), there should be no conflicts
+    global.setPopupState(mockState);
+    global.renderState();
+    expect(document.getElementById("conflictWarning").hidden).toBe(true);
+
+    // 2. Introduce a conflict (two shortcuts mapped to the same key)
+    const stateWithConflict = {
+      ...mockState,
+      shortcuts: {
+        ...mockState.shortcuts,
+        increase: { label: "]", code: "BracketRight" },
+        decrease: { label: "]", code: "BracketRight" }
+      }
+    };
+    global.setPopupState(stateWithConflict);
+    global.renderState();
+    expect(document.getElementById("conflictWarning").hidden).toBe(false);
+  });
 });
