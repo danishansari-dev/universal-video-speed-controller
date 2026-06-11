@@ -1,150 +1,170 @@
 # Universal Video Speed Controller
 
-A modern Chrome extension for fast, precise HTML5 video playback speed control on any HTML5 player.
+[![Chrome Web Store](https://img.shields.io/badge/Chrome_Web_Store-v0.3.0-blue.svg?logo=google-chrome&logoColor=white)](https://chromewebstore.google.com/detail/universal-video-speed-con/gjinmpjidodkbcgooeldokolkgejcfcp)
+[![Mozilla Add-on](https://img.shields.io/badge/Firefox_Add--on-v0.3.0-orange.svg?logo=firefox-browser&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/universal-video-speed-ctrl/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com)
 
-The extension adds a native-feeling floating speed widget, toolbar popup controls, keyboard shortcuts, wheel and pinch speed gestures, per-site rules, and local usage insights.
+A modern, high-performance browser extension for fast, precise HTML5 video playback speed control on any website. 
+
+The extension injects a native-feeling floating speed widget, toolbar popup controls, keyboard shortcuts, mouse scroll gestures, touchpad pinch configurations, per-site default rules, and calculates offline watch time saved analytics.
 
 ![Universal Video Speed Controller promo](assets/store/promo-1280x800.png)
 
+---
+
 ## Features
 
-- Floating `- / speed / +` widget on detected HTML5 video players.
-- Speed range from `0.25x` to `10x` in `0.25x` steps.
-- Single-click speed changes and press-and-hold acceleration on the widget buttons.
-- `Ctrl + mouse wheel` speed control while hovering over the video or player.
-- Pinch in / pinch out gesture support on touchpads that emit browser pinch gestures.
-- Hold `X` for temporary boost mode, then release to restore the previous speed.
-- Minimal frosted speed overlay toast in the center of the video player with a dynamic progress slider whenever playback speed changes.
-- Modern toolbar popup with speed dial, presets, live video info, settings, shortcuts, and analytics.
-- Real-time sync with the active video when the popup is open.
-- Works with dynamically loaded players and single-page navigation.
-- Avoids shortcut triggers while typing in search, comments, inputs, and editable fields.
-- Remembers preferred speeds globally, per website, or per YouTube channel.
-- Optional access rules for all websites, allowlists, or blocklists.
-- Persists preferences locally with Chrome storage.
+* **Universal Player Detection**: Seamlessly detects and binds controls to standard HTML5 `<video>` tags on YouTube, Netflix, Vimeo, Coursera, Loom, Twitch, and custom lecture portals.
+* **Precise Speed Adjustments**: Adjust playback rate from `0.25x` to `10.0x` in customizable `0.05x` or `0.25x` step increments.
+* **Floating Widget**: A lightweight, autohiding `- / speed / +` widget overlaying the active video player. On YouTube, it integrates directly with the control bar.
+* **Keyboard Hotkeys**: Fully customizable hotkeys for speed up, slow down, speed reset, widget toggle, and fullscreen HUD toggle.
+* **Temporary Boost Mode**: Press and hold `X` to temporarily accelerate video playback (default `2x`); release the key to immediately restore the previous speed.
+* **Mouse Scroll & Touchpad Gestures**: Adjust speeds by holding `Ctrl` and scrolling your mouse wheel over the video player, or use pinch-in/pinch-out trackpad gestures.
+* **Frosted Fullscreen HUD**: A clean, non-intrusive center toast overlay displaying playback speed values and percentage sliders during fullscreen.
+* **Smart Memory Rules**: Save preferred speeds globally, per domain (e.g. YouTube at 1.75x, Netflix at 1.1x), or per YouTube channel.
+* **Gated Access**: Set domain configurations to run the extension on all websites, allowed domains only (allowlist), or block specific sites (blocklist).
+* **Local Telemetry & Insights**: Tracks total watch time saved, daily usage history, session averages, and your most frequently used speed ranges stored 100% locally.
 
-## Store Preview Images
+---
 
-The promotional assets in `assets/store/` show the core feature set:
+## Store Previews
 
-![Promo banner](assets/store/promo-1400x560.png)
+The promotional assets in `assets/store/` detail the user interface:
 
-| Controls | Shortcuts and Gestures |
+| Quick Control Panel | Shortcuts & Gestures |
 | --- | --- |
 | ![Speed controls](assets/store/screenshot-01-control-1280x800.png) | ![Shortcuts and gestures](assets/store/screenshot-02-shortcuts-1280x800.png) |
 
-| Rules and Memory | Insights and Overlay |
+| Rules & Settings Memory | Local Insights & HUD Toast |
 | --- | --- |
 | ![Rules and memory](assets/store/screenshot-03-rules-settings-1280x800.png) | ![Usage insights](assets/store/screenshot-04-insights-1280x800.png) |
 
-![Fullscreen overlay](assets/store/screenshot-05-overlay-1280x800.png)
+![Fullscreen HUD Toast](assets/store/screenshot-05-overlay-1280x800.png)
 
-## Toolbar Popup
+---
 
-Click the extension icon in the Chrome toolbar to open the popup.
+## Default Keyboard Shortcuts
 
-The popup includes:
+| Shortcut | Action | Details / Behaviors |
+| --- | --- | --- |
+| `]` or `Shift` + `.` | Increase Speed | Increases speed rate by `0.25x` steps (up to `10.0x`). |
+| `[` or `Shift` + `,` | Decrease Speed | Decreases speed rate by `0.25x` steps (down to `0.25x`). |
+| `\` | Reset Speed | Instantly restores playback rate back to normal `1.0x`. |
+| Hold `X` | Temporary Boost | Speeds up video while pressed; restores rate on key release. |
+| `Shift` + `S` | Toggle Widget | Hides or reveals the floating controls widget overlay. |
+| `Shift` + `H` | Toggle HUD Toast | Toggles the center fullscreen toast speed notification. |
+| `Ctrl` + Mouse Scroll | Scroll Speed | Adjusts playback speed by scrolling over the active player. |
+| Trackpad Pinch | Pinch Adjust | Pinch-in/pinch-out trackpad gestures adjust speed rates. |
 
-- Current extension status: `Active`, `Disabled`, or `No video detected`.
-- Quick ON/OFF toggle.
-- Large speed display with circular dial visualization.
-- `+` and `-` controls with press-and-hold acceleration.
-- Preset buttons for `0.25x`, `0.5x`, `1x`, `1.5x`, `2x`, `3x`, `5x`, and `10x`.
-- Live video title, timestamp, duration, playback speed, and tab domain.
-- Smart settings for widget, shortcuts, wheel/pinch gestures, boost mode, memory behavior, overlay animation, compact mode, fullscreen-only controls, theme, and startup speed.
-- Shortcut manager with editable shortcut cards, reset, search, and conflict warnings.
-- Lightweight usage insights such as time saved, most used speed, daily usage, and current session average.
+---
 
-## Keyboard Shortcuts
+## Project Structure
 
-| Shortcut | Action |
-| --- | --- |
-| `]` or `Shift + .` | Increase speed by `0.25x` |
-| `[` or `Shift + ,` | Decrease speed by `0.25x` |
-| `\` | Reset speed to `1x` |
-| Hold `X` | Temporarily boost to `2x`; release to restore |
-| `Shift + S` | Toggle the floating widget |
-| `Shift + H` | Toggle the speed overlay |
-| *Customizable* (Unmapped by default) | Preset speed steps (`1x`, `2x`, `3x`, `4x`, `5x`, `10x`) |
-| `Ctrl + mouse wheel` | Increase or decrease speed by `0.25x` over the player |
-| Pinch in / pinch out gesture | Increase or decrease speed by `0.25x` over the player on supported touchpads |
+```
+├── manifest.json         # Manifest V3 extension configuration
+├── manifest.firefox.json # Firefox-compatible configuration
+├── background.js         # Service worker seeding storage defaults
+├── constants.js          # Shared hotkey and settings constants
+├── content.js            # Injected content script (modular managers)
+├── styles.css            # Floating widget and HUD toast overlays styling
+├── popup.html            # Extension dashboard markup
+├── popup.css             # Extension dashboard styling
+├── popup.js              # Dashboard sync controllers and storage persistence
+├── docs/                 # Marketing site & SEO landing pages (GitHub Pages)
+├── assets/
+│   ├── icons/            # Extension icons (16px, 32px, 48px, 128px)
+│   └── store/            # Promo banners, screenshots, and visual mockups
+└── tests/                # Jest unit test suites
+```
 
-Shortcuts can be fully customized from the popup.
+---
 
-## Wheel And Pinch Control
+## Architecture & Technical Decisions
 
-When **Wheel / pinch** is enabled in Smart Settings, use one of these gestures over the active video player:
+The extension is designed to run cleanly, ensuring zero performance drops:
 
-- Hold `Ctrl` and scroll up/down with a mouse wheel to increase or decrease playback speed by `0.25x`.
-- Pinch in / pinch out on supported touchpads to adjust speed through the browser's pinch gesture event.
-- The gesture only applies over the video/player area, so normal page scrolling and gestures still work elsewhere.
+* **Modular Singleton Orchestrator**: Code in `content.js` is partitioned into separate single-responsibility classes (`SettingsManager`, `DOMObserver`, `VideoController`, `WidgetUI`, `ToastUI`, `ShortcutManager`, `WheelManager`, `AnalyticsManager`) unified under a central `AppController`.
+* **High-Performance DOM Traversal**: Instead of periodic deep DOM scanning using CPU-heavy queries (which causes layout thrashing), the script listens to event-driven mutations (`MutationObserver`) and uses tree walkers to skip layout-only nodes. CPU overhead is close to 0%.
+* **Zero-Leak Lifecycle & Teardown**: To resolve extension context invalidation errors during reloads, the script registers a global `__youtubeSpeedControllerCleanup` callback. It completely tears down previous handlers, observers, timers, and elements before launching a new instance.
+* **Layout Compositing**: Uses hardware-accelerated GPU compositing (`transform: translate3d(0,0,0)`) on primary HUD animations to prevent frame drops.
+* **Graceful Degradation**: Core APIs fall back gracefully to defaults if the extension runtime gets invalidated or updated while a tab is open.
 
-## Floating Widget
+---
 
-The widget appears as a lightweight floating control on detected video players. On YouTube, it still aims to blend with the player chrome.
+## Local Development & Installation
 
-Controls:
+If you want to run or test the extension locally:
 
-- Click `+` to increase speed once.
-- Click `-` to decrease speed once.
-- Press and hold `+` or `-` to rapidly step through speeds.
-- Click the speed pill to increase by one step.
+1. Clone or download this repository to your local drive.
+2. Launch Google Chrome.
+3. Navigate to `chrome://extensions/`.
+4. Enable the **Developer mode** toggle switch in the upper right corner.
+5. Click the **Load unpacked** button and select the project folder containing `manifest.json`.
+6. Open any tab containing an HTML5 video player to load and test the local build.
 
-The widget follows YouTube's hover/autohide behavior and can be hidden from the popup or with `Shift + S`.
+---
 
-## Install Locally
+## Contributing Guide
 
-1. Open Chrome.
-2. Go to `chrome://extensions`.
-3. Enable **Developer mode**.
-4. Click **Load unpacked**.
-5. Select this folder: `D:\Projects\youtube-speed-controller`.
-6. Open a page with an HTML5 video.
-7. Hover over the video controls or click the extension icon in the toolbar.
+We welcome contributions from the community! To help maintain code quality and security, please follow these guidelines when submitting pull requests:
 
-After making code changes, click **Reload** on the extension card in `chrome://extensions`.
+### 1. Environment Setup
+The extension is built using vanilla HTML, CSS, and JavaScript, meaning there are no compilation build steps. However, you will need Node.js to run local tests and syntactic validations:
 
-## Project Files
+```bash
+# Clone the repository
+git clone https://github.com/danishansari-dev/universal-video-speed-controller.git
+cd universal-video-speed-controller
 
-- `manifest.json` defines the Manifest V3 extension, permissions, popup, icons, service worker, and content scripts.
-- `background.js` seeds defaults on install/update and broadcasts storage changes to open tabs.
-- `constants.js` stores shared shortcut defaults used by the content script, popup, and service worker.
-- `content.js` is the core content script, fully refactored into a high-performance, modular class-based architecture (`SettingsManager`, `DOMObserver`, `VideoController`, `WidgetUI`, `ToastUI`, `ShortcutManager`, `WheelManager`, `AnalyticsManager`, `AppController`).
-- `styles.css` styles the in-player widget and YouTube-style overlay.
-- `popup.html` defines the toolbar popup markup.
-- `popup.css` styles the modern popup UI.
-- `popup.js` syncs popup state with the active video tab and persists settings.
-- `assets/icons/` contains extension icons referenced by the manifest.
-- `assets/store/` contains promotional PNG assets for store listing preparation.
+# Install developer dependencies (Jest testing framework)
+npm install
+```
 
-## Architecture & Engineering
-
-This extension is built to meet startup-grade production standards, prioritizing performance, readability, and reliability:
-
-- **Modular Design**: Code is encapsulated within single-responsibility classes under a central orchestrating `AppController`. This allows each manager (Shortcuts, UI, Analytics, Settings) to operate independently.
-- **High-Performance DOM Scanning**: Instead of periodic expensive `querySelectorAll("*")` deep scans that trigger CPU spikes and layout thrashing, a custom tree walker traverses the DOM while skipping layout-only nodes. It listens to event-driven mutations to observe shadow roots dynamically, reducing CPU usage to nearly 0%.
-- **Zero-Leak Lifecycle & Teardown**: To solve extension context invalidation errors and double-event registrations during hot reloads/updates, the script registers a global `__youtubeSpeedControllerCleanup` callback. It completely tears down previous handlers, MutationObservers, timers, and DOM nodes before starting the new instance.
-- **Smooth 60 FPS Layouts**: UI updates, coordinate recalculations, and obstacle avoidance checking (using corner penalties and overlapping rect areas) are debounced and batched using `requestAnimationFrame`.
-- **Compositing & Layout Glitch Mitigation**: Forcing hardware-accelerated GPU compositing (`transform: translate3d(0,0,0)`) on primary popup panels prevents Chromium subpixel layout rendering offsets on Windows. Additionally, block-level form fields and scrollbar-hidden containers prevent broken border-radius rendering artifacts.
-- **Fault-Tolerant Storage**: All storage queries and runtime actions are wrapped in error boundaries. If context invalidates after an extension reload, storage APIs degrade gracefully to defaults.
-
-
-## Development Notes
-
-This extension uses plain JavaScript, HTML, and CSS. There is no build step.
-
-Useful validation commands:
+### 2. Validation & Syntax Checking
+Before submitting changes, make sure your scripts are syntactically sound by running:
 
 ```powershell
+# Check JavaScript syntax
 node --check content.js
 node --check popup.js
 node --check background.js
 node --check constants.js
-node -e "JSON.parse(require('fs').readFileSync('manifest.json','utf8')); console.log('manifest ok')"
+
+# Validate manifest.json format
+node -e "JSON.parse(require('fs').readFileSync('manifest.json','utf8')); console.log('manifest.json is valid')"
 ```
+
+### 3. Running Unit Tests
+We use Jest for unit testing. Make sure to run the test suite and verify that all assertions pass:
+
+```bash
+# Run all unit tests
+npm run test
+```
+
+### 4. Coding Standards
+* **Vanilla JavaScript Only**: Do not introduce bundlers (Webpack, Rollup), transpilers, or frontend frameworks (React, Vue) to the extension popup or content scripts. Keep code lightweight and fast.
+* **JSDoc Formatting**: Annotate all functions, parameters, and return types with descriptive JSDoc block comments.
+* **Explanatory Comments**: Add comments detailing *why* code decisions are made, particularly when implementing complex calculations (e.g. coordinates offsetting or mutation filtering).
+* **Cross-Browser Compatibility**: Ensure your code remains compatible with both Chrome (Manifest V3) and Firefox (Manifest V2 structure).
+
+### 5. Pull Request Workflow
+1. Fork the repository and create a branch from `main`:
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+2. Commit your modifications with clear, descriptive commit messages. Focus on granular, single-file commits if possible.
+3. Run the validation checks and Jest tests to verify everything is working.
+4. Push your branch to your forked repository:
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+5. Open a Pull Request on GitHub against our `main` branch. Provide a detailed summary explaining the changes and what they achieve.
+
+---
 
 ## Current Limitations
 
-- The popup can only control playback when the active tab has a detected HTML5 video player.
-- Some very high playback speeds may depend on browser and YouTube player behavior.
-- Visual QA should be done by loading the unpacked extension in Chrome, since Chrome extension popups require the browser extension runtime.
+* **Detected Videos Only**: The popup dashboard controls only bind when the active browser tab contains a successfully detected HTML5 video player element.
+* **Platform Overrides**: Some platforms use strict video player controls that might override external rate modifications. If you encounter issues on specific websites, please report them as a GitHub issue.
