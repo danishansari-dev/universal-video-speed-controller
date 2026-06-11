@@ -929,3 +929,110 @@ p {
     transform: translateY(0);
   }
 }
+
+/* Why this exists:
+   Styles the store review solicitation card inside the analytics panel.
+   Uses a gradient to look visually distinct and draw the user's attention.
+*/
+.review-card {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: var(--radius-card);
+  background: linear-gradient(135deg, rgba(255, 49, 90, 0.08), rgba(63, 213, 232, 0.05));
+  border: 1px solid var(--hairline);
+  animation: fadeInTab .25s ease-out;
+}
+
+.review-card strong {
+  display: block;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 760;
+  margin-bottom: 4px;
+}
+
+.review-card p {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+  margin-bottom: 12px;
+}
+
+.review-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.review-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 680;
+  text-decoration: none;
+  background: var(--accent);
+  color: #fff !important;
+  box-shadow: 0 6px 14px rgba(255, 49, 90, .14);
+  transition: transform .12s ease, background .14s ease;
+}
+
+.review-btn:hover {
+  transform: translateY(-1px);
+  background: var(--accent-2);
+}
+
+.dismiss-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 680;
+  background: var(--surface-soft);
+  color: var(--text);
+  transition: transform .12s ease, background .14s ease;
+}
+
+.dismiss-btn:hover {
+  transform: translateY(-1px);
+  background: var(--surface-hover);
+}
+
+/* Why this exists:
+   Styles the What's New changelog list under the settings panel.
+   Keeps it visually distinct from smart settings grid.
+*/
+.whats-new-panel {
+  margin-top: 12px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .045), transparent), var(--surface);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-panel), inset 0 1px 0 rgba(255, 255, 255, .045);
+}
+
+.changelog-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.changelog-list li {
+  margin-bottom: 8px;
+}
+
+.changelog-list li:last-child {
+  margin-bottom: 0;
+}
+
+.changelog-list strong {
+  color: var(--text);
+}
+
