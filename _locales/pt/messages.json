@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "Controlador de Velocidade de Vídeo Universal",
+    "description": "The name of the extension."
+  },
+  "extDescription": {
+    "message": "Controles de velocidade de reprodução para vídeos HTML5 em qualquer site: atalhos, widget flutuante, pop-up e memória por site.",
+    "description": "The description of the extension."
+  },
+  "actionTitle": {
+    "message": "Controlador de Velocidade de Vídeo",
+    "description": "The tooltip title for the extension toolbar button."
+  }
+}

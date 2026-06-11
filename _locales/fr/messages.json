@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "Contrôleur Universel de Vitesse Vidéo",
+    "description": "The name of the extension."
+  },
+  "extDescription": {
+    "message": "Contrôlez la vitesse de lecture des vidéos HTML5 sur n'importe quel site : raccourcis, widget flottant, pop-up et mémoire par site.",
+    "description": "The description of the extension."
+  },
+  "actionTitle": {
+    "message": "Contrôleur de Vitesse Vidéo",
+    "description": "The tooltip title for the extension toolbar button."
+  }
+}

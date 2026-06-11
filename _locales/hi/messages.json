@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "यूनिवर्सल वीडियो स्पीड कंट्रोलर",
+    "description": "The name of the extension."
+  },
+  "extDescription": {
+    "message": "किसी भी वेबसाइट पर HTML5 वीडियो की प्लेबैक गति को नियंत्रित करें - शॉर्टकट, फ्लोटिंग विजेट, पॉपअप, और प्रति-साइट मेमोरी।",
+    "description": "The description of the extension."
+  },
+  "actionTitle": {
+    "message": "वीडियो स्पीड कंट्रोलर",
+    "description": "The tooltip title for the extension toolbar button."
+  }
+}

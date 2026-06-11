@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "Controllo Universale della Velocità Video",
+    "description": "The name of the extension."
+  },
+  "extDescription": {
+    "message": "Controlli della velocità di riproduzione per video HTML5 su qualsiasi sito web: scorciatoie, widget mobile, popup e memoria specifica per sito.",
+    "description": "The description of the extension."
+  },
+  "actionTitle": {
+    "message": "Controllo Velocità Video",
+    "description": "The tooltip title for the extension toolbar button."
+  }
+}

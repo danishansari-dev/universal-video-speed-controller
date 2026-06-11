@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "通用影片速度控制器",
+    "description": "The name of the extension."
+  },
+  "extDescription": {
+    "message": "適用於任何網站的 HTML5 影片播放速度控制 - 快捷鍵、懸浮窗、彈出視窗和單站點記憶。",
+    "description": "The description of the extension."
+  },
+  "actionTitle": {
+    "message": "影片速度控制器",
+    "description": "The tooltip title for the extension toolbar button."
+  }
+}

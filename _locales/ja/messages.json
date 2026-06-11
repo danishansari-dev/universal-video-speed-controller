@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "ユニバーサル ビデオ速度コントローラー",
+    "description": "The name of the extension."
+  },
+  "extDescription": {
+    "message": "あらゆるウェブサイトのHTML5ビデオ再生速度をコントロール。ショートカット、フローティングウィジェット、ポップアップ、サイトごとの設定メモリを搭載。",
+    "description": "The description of the extension."
+  },
+  "actionTitle": {
+    "message": "ビデオ速度コントローラー",
+    "description": "The tooltip title for the extension toolbar button."
+  }
+}

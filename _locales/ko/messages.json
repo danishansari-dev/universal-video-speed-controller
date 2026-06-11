@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "범용 비디오 속도 조절기",
+    "description": "The name of the extension."
+  },
+  "extDescription": {
+    "message": "모든 웹사이트의 HTML5 비디오 재생 속도 제어 - 단축키, 플로팅 위젯, 팝업 및 사이트별 메모리 기능 제공.",
+    "description": "The description of the extension."
+  },
+  "actionTitle": {
+    "message": "비디오 속도 조절기",
+    "description": "The tooltip title for the extension toolbar button."
+  }
+}

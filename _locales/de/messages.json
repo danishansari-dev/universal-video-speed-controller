@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "Universal-Videogeschwindigkeitsregler",
+    "description": "The name of the extension."
+  },
+  "extDescription": {
+    "message": "Wiedergabegeschwindigkeit-Steuerung für HTML5-Videos auf jeder Website - Tastenkombinationen, schwebendes Widget, Popup und seitenbezogener Speicher.",
+    "description": "The description of the extension."
+  },
+  "actionTitle": {
+    "message": "Videogeschwindigkeitsregler",
+    "description": "The tooltip title for the extension toolbar button."
+  }
+}

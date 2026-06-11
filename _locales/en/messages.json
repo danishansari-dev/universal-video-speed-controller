@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "Universal Video Speed Controller",
+    "description": "The name of the extension."
+  },
+  "extDescription": {
+    "message": "Playback speed controls for HTML5 video on any website - shortcuts, floating widget, popup, and per-site memory.",
+    "description": "The description of the extension."
+  },
+  "actionTitle": {
+    "message": "Video Speed Controller",
+    "description": "The tooltip title for the extension toolbar button."
+  }
+}
