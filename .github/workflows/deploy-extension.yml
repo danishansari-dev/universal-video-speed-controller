@@ -1,0 +1,77 @@
+# Why this file exists:
+# Automates the packaging and publication of the browser extension to both the
+# Google Chrome Web Store and the Mozilla Firefox Add-ons (AMO) portal.
+# It is triggered automatically when a new release tag (v*) is pushed, or manually
+# from the GitHub Actions UI, ensuring secure, consistent, and error-free releases.
+#
+# Tricky logic:
+# Firefox requires a browser-specific extension ID which is declared in manifest.firefox.json.
+# Before zipping the Firefox version, we copy manifest.firefox.json over manifest.json,
+# package the zip file, and then discard the changes to preserve the original manifest.json.
+
+name: Deploy Extension to Web Stores
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Package and Deploy Extension
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Tests
+        run: npm test
+
+      # ----------------------------------------------------
+      # 1. Package and Publish to Chrome Web Store
+      # ----------------------------------------------------
+      - name: Create Chrome ZIP Bundle
+        run: |
+          zip -r universal-video-speed-controller.zip manifest.json background.js constants.js content.js inject.js styles.css popup.html popup.js popup.css assets/icons _locales
+
+      - name: Upload and Publish to Chrome Web Store
+        uses: mnao305/chrome-extension-upload@v5.0.0
+        with:
+          file-path: universal-video-speed-controller.zip
+          extension-id: ${{ secrets.CHROME_EXTENSION_ID }}
+          client-id: ${{ secrets.CHROME_CLIENT_ID }}
+          client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
+          refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          publish: true
+
+      # ----------------------------------------------------
+      # 2. Package and Publish to Firefox Add-ons (AMO)
+      # ----------------------------------------------------
+      - name: Switch Manifest for Firefox
+        if: ${{ secrets.FIREFOX_JWT_ISSUER != '' && secrets.FIREFOX_JWT_SECRET != '' }}
+        run: |
+          cp manifest.firefox.json manifest.json
+
+      - name: Create Firefox ZIP Bundle
+        if: ${{ secrets.FIREFOX_JWT_ISSUER != '' && secrets.FIREFOX_JWT_SECRET != '' }}
+        run: |
+          zip -r universal-video-speed-controller-firefox.zip manifest.json background.js constants.js content.js inject.js styles.css popup.html popup.js popup.css assets/icons _locales
+
+      - name: Publish to Firefox Add-ons (AMO)
+        if: ${{ secrets.FIREFOX_JWT_ISSUER != '' && secrets.FIREFOX_JWT_SECRET != '' }}
+        uses: cardinalby/webext-buildtools-firefox-addons-action@v1
+        with:
+          zipFilePath: universal-video-speed-controller-firefox.zip
+          extensionId: ${{ secrets.FIREFOX_EXTENSION_ID }}
+          jwtIssuer: ${{ secrets.FIREFOX_JWT_ISSUER }}
+          jwtSecret: ${{ secrets.FIREFOX_JWT_SECRET }}
