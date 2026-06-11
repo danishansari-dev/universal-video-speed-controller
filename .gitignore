@@ -1,3 +1,6 @@
 node_modules/
 PUBLISHING.md
 *.zip
+
+# Ignore the Chrome Web Store manual resubmission documentation to avoid tracking store-specific instructions in the repository
+docs/chrome-web-store-manual-resubmission.md
