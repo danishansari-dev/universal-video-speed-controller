@@ -45,7 +45,8 @@ const DEFAULT_STORAGE = {
   "youtubeSpeedController.channelRates": {},
   "youtubeSpeedController.sitePolicies": {},
   "youtubeSpeedController.widgetHidden": false,
-  "youtubeSpeedController.toastHidden": false
+  "youtubeSpeedController.toastHidden": false,
+  "youtubeSpeedController.reviewPromptDismissed": false
 };
 
 let broadcastTimer = 0;
