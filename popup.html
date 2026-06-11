@@ -168,6 +168,19 @@
             </label>
           </div>
         </section>
+
+        <!-- WHAT'S NEW PANEL -->
+        <section class="whats-new-panel">
+          <div class="section-heading">
+            <h2>What's New in v0.3.0</h2>
+            <span>Changelog</span>
+          </div>
+          <ul class="changelog-list">
+            <li>⚡ <strong>Pinch & Scroll Gestures:</strong> Adjust speed with touchpad pinch and <code>Ctrl + Scroll</code>.</li>
+            <li>🌍 <strong>Global SEO & Languages:</strong> Added full metadata localization for 10 languages.</li>
+            <li>📊 <strong>Private Insights:</strong> View lifetime time-saved and daily watch habits completely offline.</li>
+          </ul>
+        </section>
       </div>
 
       <!-- INSIGHTS TAB -->
@@ -184,6 +197,16 @@
             <div><span>Session avg</span><strong id="sessionAverage">1x</strong></div>
           </div>
         </section>
+
+        <!-- REVIEW PROMPT CARD -->
+        <div id="reviewPromptCard" class="review-card" hidden>
+          <strong>🚀 You've saved over <span id="promptTimeSaved">1 hour</span>!</strong>
+          <p>If this speed controller has helped you save time, please support us by leaving a review on the store.</p>
+          <div class="review-card-actions">
+            <a href="#" target="_blank" class="review-btn" id="rateBtn">Rate 5-Stars ★</a>
+            <button class="dismiss-btn" id="dismissReviewBtn" type="button">Maybe later</button>
+          </div>
+        </div>
       </div>
     </main>
 
