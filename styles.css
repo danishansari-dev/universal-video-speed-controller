@@ -270,6 +270,36 @@ body > .ysc-speed-toast-visible {
   visibility: visible;
 }
 
+/* Why this exists: YouTube home cards have mute, caption, and duration overlays
+   with little spare room. The compact layout lets the collision-aware placement
+   stay inside a thumbnail without covering those native controls. */
+.ysc-speed-widget.ysc-speed-widget--floating.ysc-speed-widget--yt-thumbnail {
+  border-radius: 8px;
+  gap: 0;
+  padding: 2px 3px;
+}
+
+.ysc-speed-widget.ysc-speed-widget--floating.ysc-speed-widget--yt-thumbnail .ysc-speed-button {
+  border-radius: 7px;
+  font-size: 10px;
+  height: 24px;
+  min-width: 24px;
+  padding: 0 2px;
+}
+
+.ysc-speed-widget.ysc-speed-widget--floating.ysc-speed-widget--yt-thumbnail .ysc-speed-rate {
+  border-radius: 7px;
+  font-size: 10px;
+  height: 24px;
+  min-width: 32px;
+  padding: 0 4px;
+}
+
+.ysc-speed-widget.ysc-speed-widget--floating.ysc-speed-widget--yt-thumbnail .ysc-speed-icon {
+  height: 12px;
+  width: 12px;
+}
+
 .ysc-speed-widget.ysc-speed-widget--floating.ysc-speed-widget--ambient.ysc-speed-widget--fs {
   transform: translateY(0) scale(1.06);
 }

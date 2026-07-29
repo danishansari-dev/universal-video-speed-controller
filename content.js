@@ -44,6 +44,7 @@
   const FLOATING_WIDGET_FALLBACK_H = 36;
   const FLOATING_EDGE_MARGIN = 10;
   const FLOATING_COLLISION_PAD = 8;
+  const YOUTUBE_THUMBNAIL_WIDGET_EDGE_PX = 6;
   const ANALYTICS_RETENTION_DAYS = 90;
 
   const YOUTUBE_COMPACT_CONTAINER_SELECTOR = [
@@ -1198,6 +1199,13 @@
      * @returns {HTMLVideoElement|null} Target playback video.
      */
     getVideo() {
+      const hoveredVideo = this.observer.lastPointerVideo;
+      if (isYouTubeHost() && hoveredVideo && this.observer.isVideoUsable(hoveredVideo)) {
+        // Why this exists: YouTube creates a separate preview player for each hovered
+        // thumbnail, so the controller must follow the card under the pointer instead
+        // of retaining a preview from a previously hovered recommendation.
+        return hoveredVideo;
+      }
       if (this.activeVideo && this.observer.isVideoUsable(this.activeVideo)) {
         return this.activeVideo;
       }
@@ -1939,6 +1947,33 @@
     }
 
     /**
+     * Pins the compact YouTube widget to the thumbnail's top-left corner.
+     *
+     * Why this exists:
+     * YouTube keeps its hover mute and caption controls on the right side of
+     * recommendation thumbnails. A fixed left anchor is more predictable than
+     * trying to infer temporary caption layouts across responsive card variants.
+     *
+     * @param {DOMRect} vr - Preview video bounds.
+     * @param {number} ww - Measured widget width.
+     * @param {number} wh - Measured widget height.
+     * @returns {{left: number, top: number}|null} In-thumbnail top-left coordinates.
+     */
+    pickYouTubeThumbnailPosition(vr, ww, wh) {
+      const edge = YOUTUBE_THUMBNAIL_WIDGET_EDGE_PX;
+      const minLeft = vr.left + edge;
+      const maxLeft = vr.right - ww - edge;
+      const minTop = vr.top + edge;
+      const maxTop = vr.bottom - wh - edge;
+
+      if (maxLeft < minLeft || maxTop < minTop) {
+        return null;
+      }
+
+      return { left: minLeft, top: minTop };
+    }
+
+    /**
      * Samples DOM overlays to determine if UI controls are open.
      * 
      * @danishansari-dev left - Left offset.
@@ -2151,21 +2186,35 @@
         this.widget.style.left = "";
         this.widget.style.top = "";
         this.widget.classList.remove("ysc-speed-widget--vertical");
-        this.widget.classList.remove("ysc-speed-widget--yt-preview");
+        this.widget.classList.remove("ysc-speed-widget--yt-thumbnail");
         this.applyFloatingAmbientClass();
         return;
       }
 
-      const youtubePreviewLayout = this.isYouTubeCompactPreview(video, rect, fullscreenUi);
-      if (youtubePreviewLayout) {
-        this.widget.style.display = "none";
-        this.resetFloatingHoverState();
-        return;
-      }
+      const youtubeThumbnailLayout = this.isYouTubeCompactPreview(video, rect, fullscreenUi);
       this.widget.style.display = "";
 
+      if (youtubeThumbnailLayout) {
+        this.widget.classList.add("ysc-speed-widget--yt-thumbnail");
+        this.widget.classList.remove("ysc-speed-widget--vertical");
+
+        const ww = this.widget.offsetWidth || 92;
+        const wh = this.widget.offsetHeight || 30;
+        const position = this.pickYouTubeThumbnailPosition(rect, ww, wh);
+        if (!position) {
+          this.widget.style.display = "none";
+          this.resetFloatingHoverState();
+          return;
+        }
+
+        this.widget.style.left = `${Math.round(position.left)}px`;
+        this.widget.style.top = `${Math.round(position.top)}px`;
+        this.applyFloatingAmbientClass();
+        return;
+      }
+
       const verticalLayout = rect.height / rect.width >= 1.18;
-      this.widget.classList.remove("ysc-speed-widget--yt-preview");
+      this.widget.classList.remove("ysc-speed-widget--yt-thumbnail");
       this.widget.classList.toggle("ysc-speed-widget--vertical", verticalLayout);
 
       const now = performance.now();
@@ -2286,13 +2335,7 @@
       if (!video || !this.observer.isVideoUsable(video)) return false;
 
       const vr = video.getBoundingClientRect();
-      const bottomPad = Math.min(FLOATING_BOTTOM_CHROME_PAD, Math.max(64, vr.height * 0.26));
-      const hoverZone = {
-        left: vr.left - FLOATING_HOVER_EXPAND_PX,
-        top: vr.top - FLOATING_HOVER_EXPAND_PX,
-        right: vr.right + FLOATING_HOVER_EXPAND_PX,
-        bottom: vr.bottom + bottomPad
-      };
+      const isYouTubeThumbnail = this.isYouTubeCompactPreview(video, vr, this.isFullscreenMode());
 
       const wr = this.widget.getBoundingClientRect();
       const inWr = wr.width > 0 && wr.height > 0 && (
@@ -2301,6 +2344,20 @@
       if (inWr) return true;
 
       const inVideoRect = clientX >= vr.left && clientX <= vr.right && clientY >= vr.top && clientY <= vr.bottom;
+      if (isYouTubeThumbnail) {
+        // Why this exists: a recommendation card has title and metadata directly
+        // below its thumbnail. Keeping the reveal area to the video itself makes
+        // thumbnail controls appear only while that exact card is hovered.
+        return inVideoRect;
+      }
+
+      const bottomPad = Math.min(FLOATING_BOTTOM_CHROME_PAD, Math.max(64, vr.height * 0.26));
+      const hoverZone = {
+        left: vr.left - FLOATING_HOVER_EXPAND_PX,
+        top: vr.top - FLOATING_HOVER_EXPAND_PX,
+        right: vr.right + FLOATING_HOVER_EXPAND_PX,
+        bottom: vr.bottom + bottomPad
+      };
       const inHoverZone = clientX >= hoverZone.left && clientX <= hoverZone.right && clientY >= hoverZone.top && clientY <= hoverZone.bottom;
       const chromeOpen = this.isBottomOverlayStackOpen(video, vr);
 
@@ -2361,7 +2418,7 @@
       }
 
       this.widget.classList.remove("ysc-speed-widget--floating");
-      this.widget.classList.remove("ysc-speed-widget--yt-preview");
+      this.widget.classList.remove("ysc-speed-widget--yt-thumbnail");
       this.widget.classList.remove("ysc-speed-widget--vertical");
       this.widget.style.display = "";
       this.widgetPlacement = "youtube";
@@ -3496,9 +3553,41 @@
         this.observer.lastPointerClientY = event.clientY;
 
         const path = event.composedPath();
-        const hovered = path.find((node) => node instanceof HTMLVideoElement && this.observer.isVideoUsable(node));
+        let hovered = path.find((node) => node instanceof HTMLVideoElement && this.observer.isVideoUsable(node));
+
+        if (!hovered && isYouTubeHost()) {
+          // Why this exists: YouTube's hover captions and mute button sit above
+          // the preview video in the event path. Resolve their containing card so
+          // moving over native thumbnail UI still keeps the widget on that card.
+          const cardTarget = path.find((node) => (
+            node instanceof Element && node.closest(YOUTUBE_COMPACT_CONTAINER_SELECTOR)
+          ));
+          const card = cardTarget?.closest(YOUTUBE_COMPACT_CONTAINER_SELECTOR);
+          const cardVideo = card?.querySelector("video");
+          const cardRect = cardVideo?.getBoundingClientRect();
+          const pointerIsInsidePreview = cardRect
+            && event.clientX >= cardRect.left
+            && event.clientX <= cardRect.right
+            && event.clientY >= cardRect.top
+            && event.clientY <= cardRect.bottom;
+
+          if (pointerIsInsidePreview && this.observer.isVideoUsable(cardVideo)) {
+            hovered = cardVideo;
+          }
+        }
 
         this.observer.lastPointerVideo = hovered || this.observer.lastPointerVideo;
+        const hoveredRect = hovered?.getBoundingClientRect();
+        const hoveringYouTubeThumbnail = Boolean(
+          hovered
+          && hoveredRect
+          && this.widgetUI.isYouTubeCompactPreview(hovered, hoveredRect, false)
+        );
+
+        if (hoveringYouTubeThumbnail && hovered !== this.controller.activeVideo) {
+          this.refresh();
+        }
+
         this.widgetUI.updateFloatingHoverFromClientPoint(this.observer.lastPointerClientX, this.observer.lastPointerClientY);
 
         if (!isYouTubeHost()) return;
