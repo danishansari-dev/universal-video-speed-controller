@@ -64,36 +64,51 @@
   ].join(",");
 
   const YOUTUBE_COMPACT_OBSTACLE_SELECTOR = [
-    ".ytp-chrome-top",
-    ".ytp-gradient-top",
-    ".ytp-chrome-bottom",
-    ".ytp-gradient-bottom",
+    ".ytp-inline-preview-controls",
     ".ytp-right-controls",
     ".ytp-left-controls",
+    ".ytp-chrome-top",
+    ".ytp-gradient-top",
     ".ytp-subtitles-button",
     ".ytp-settings-button",
     ".ytp-mute-button",
     ".ytp-volume-panel",
     ".ytp-time-display",
     ".ytp-progress-bar-container",
+    ".ytp-progress-bar",
     ".ytp-title",
     ".ytp-cards-button",
     ".ytp-watch-later-button",
     ".ytp-ce-element",
     ".ytp-paid-content-overlay",
+    ".ytp-caption-window-container",
+    ".ytp-caption-window",
+    ".ytp-caption-segment",
+    ".caption-window",
+    ".caption-visual-line",
     "ytd-thumbnail-overlay-time-status-renderer",
+    "yt-thumbnail-overlay-time-status-view-model",
     "ytd-thumbnail-overlay-toggle-button-renderer",
+    "yt-thumbnail-overlay-toggle-button-view-model",
+    "yt-thumbnail-overlay-badge-view-model",
     "ytd-thumbnail-overlay-button-renderer",
     "ytd-thumbnail-overlay-resume-playback-renderer",
     "ytd-thumbnail-overlay-now-playing-renderer",
     "ytd-thumbnail-overlay-bottom-panel-renderer",
     "ytd-thumbnail-overlay-side-panel-renderer",
+    "ytd-thumbnail-overlay-hover-text-renderer",
+    "ytd-thumbnail-overlay-loading-preview-renderer",
+    "ytd-thumbnail-overlay-equalizer",
     "ytd-menu-renderer",
     "ytd-badge-supported-renderer",
+    ".badge-shape-wiz",
+    "badge-shape",
     "ytd-channel-name",
     "ytd-video-owner-renderer",
     "yt-icon-button",
     "#avatar",
+    "#hover-overlays",
+    "#overlays",
     "button[aria-label*='Watch later' i]",
     "button[aria-label*='Add to queue' i]",
     "button[aria-label*='More actions' i]",
@@ -106,8 +121,14 @@
     "[aria-label*='More actions' i]",
     "[aria-label*='Subtitles' i]",
     "[aria-label*='Closed captions' i]",
+    "[aria-label*='Captions' i]",
     "[aria-label*='Volume' i]",
-    "[aria-label*='Mute' i]"
+    "[aria-label*='Mute' i]",
+    "[class*='caption' i]",
+    "[class*='subtitle' i]",
+    "[class*='timedtext' i]",
+    "[class*='duration' i]",
+    "[class*='time-status' i]"
   ].join(",");
 
   const SPEEDS = Array.from(
@@ -1904,7 +1925,6 @@
       };
 
       const baseSelectors = [
-        ".ytp-chrome-top", ".ytp-gradient-top", ".ytp-chrome-bottom", ".ytp-gradient-bottom",
         ".ytp-right-controls", ".ytp-left-controls", ".ytp-caption-window-container",
         ".ytp-caption-window", ".vjs-control-bar", ".vjs-progress-control",
         ".vjs-text-track-display", "[class*='control-bar' i]", "[class*='ControlBar' i]",
@@ -1914,6 +1934,16 @@
         "[class*='BottomControls' i]", ".shaka-bottom-controls", ".shaka-text-container",
         "[data-uia*='control' i]"
       ];
+
+      if (!compactPreview) {
+        // Why this exists: the full player uses wide chrome layers that are useful
+        // collision boundaries. On thumbnails they cover most of the frame and
+        // would hide the widget even when the actual mute and caption controls
+        // leave a safe caption-following slot.
+        baseSelectors.unshift(
+          ".ytp-chrome-top", ".ytp-gradient-top", ".ytp-chrome-bottom", ".ytp-gradient-bottom"
+        );
+      }
 
       if (compactPreview && isYouTubeHost()) {
         roots.add(this.getYouTubeCompactRoot(video));
@@ -1932,34 +1962,120 @@
           if (style.display === "none" || style.visibility === "hidden") return;
           const opacity = parseFloat(style.opacity);
           if (Number.isFinite(opacity) && opacity < 0.03) return;
-          push(el.getBoundingClientRect());
+          const rect = el.getBoundingClientRect();
+
+          // Why this exists: thumbnail roots and the preview player itself span the
+          // whole card. Treating them as an obstacle would incorrectly eliminate all
+          // valid slots, while their smaller children are the native UI to avoid.
+          if (compactPreview && (
+            el.contains(video)
+            || (rect.width >= vr.width * 0.94 && rect.height >= vr.height * 0.94)
+          )) {
+            return;
+          }
+          push(rect);
         });
       });
 
-      push({
-        left: vr.left,
-        top: compactPreview ? vr.bottom - Math.min(48, Math.max(24, vr.height * 0.24)) : vr.top + vr.height * 0.56,
-        right: vr.right,
-        bottom: vr.bottom
-      });
+      if (!compactPreview) {
+        push({
+          left: vr.left,
+          top: vr.top + vr.height * 0.56,
+          right: vr.right,
+          bottom: vr.bottom
+        });
+      }
 
       return out;
     }
 
     /**
-     * Pins the compact YouTube widget to the thumbnail's top-left corner.
+     * Collects the visible caption or subtitle overlays for a YouTube thumbnail.
      *
      * Why this exists:
-     * YouTube keeps its hover mute and caption controls on the right side of
-     * recommendation thumbnails. A fixed left anchor is more predictable than
-     * trying to infer temporary caption layouts across responsive card variants.
+     * Preview captions are rendered by YouTube outside of the video element, so
+     * positioning against the video rectangle alone can place controls over text.
      *
+     * @param {HTMLVideoElement} video - Thumbnail preview video.
      * @param {DOMRect} vr - Preview video bounds.
-     * @param {number} ww - Measured widget width.
-     * @param {number} wh - Measured widget height.
-     * @returns {{left: number, top: number}|null} In-thumbnail top-left coordinates.
+     * @returns {DOMRect[]} Visible caption and subtitle bounds.
      */
-    pickYouTubeThumbnailPosition(vr, ww, wh) {
+    getYouTubeThumbnailCaptionRects(video, vr) {
+      const root = this.getYouTubeCompactRoot(video);
+      if (!root || !vr?.width) return [];
+
+      const selectors = [
+        ".ytp-caption-window-container",
+        ".ytp-caption-window",
+        ".ytp-caption-segment",
+        ".ytp-subtitles-button",
+        "[class*='caption' i]",
+        "[class*='subtitle' i]",
+        "[class*='timedtext' i]",
+        "[aria-label*='caption' i]",
+        "[aria-label*='subtitle' i]",
+        "[aria-label*='closed captions' i]"
+      ].join(",");
+      const scopes = new Set([root, video.closest(".html5-video-player")]);
+      const rects = [];
+
+      scopes.forEach((scope) => {
+        if (!scope?.querySelectorAll) return;
+        scope.querySelectorAll(selectors).forEach((el) => {
+          if (!(el instanceof HTMLElement) || el.contains(video)) return;
+          if (this.widget && (el === this.widget || el.contains(this.widget))) return;
+
+          const style = window.getComputedStyle(el);
+          if (style.display === "none" || style.visibility === "hidden") return;
+          const opacity = parseFloat(style.opacity);
+          if (Number.isFinite(opacity) && opacity < 0.03) return;
+
+          const rect = el.getBoundingClientRect();
+          const intersectsVideo = !(rect.right <= vr.left || rect.left >= vr.right || rect.bottom <= vr.top || rect.top >= vr.bottom);
+          if (rect.width >= 4 && rect.height >= 3 && intersectsVideo) {
+            rects.push(rect);
+          }
+        });
+      });
+
+      return rects;
+    }
+
+    /**
+     * Checks whether a candidate thumbnail slot is clear of YouTube's native UI.
+     *
+     * @param {object} slot - Candidate widget coordinates and dimensions.
+     * @param {DOMRect[]} obstacles - Native overlay bounds to protect.
+     * @returns {boolean} True when the slot does not cover native controls.
+     */
+    isYouTubeThumbnailSlotClear(slot, obstacles) {
+      const pad = YOUTUBE_THUMBNAIL_WIDGET_EDGE_PX;
+      return !obstacles.some((obstacle) => (
+        slot.left - pad < obstacle.right
+        && slot.right + pad > obstacle.left
+        && slot.top - pad < obstacle.bottom
+        && slot.bottom + pad > obstacle.top
+      ));
+    }
+
+    /**
+     * Chooses a safe fixed-position slot for a compact YouTube thumbnail widget using priority collision detection.
+     *
+     * Why this exists:
+     * YouTube's thumbnail hover preview places native controls (mute/unmute, captions toggle, video duration badge,
+     * live tags, watch progress) in fixed corners. This engine evaluates candidate positions in a strict priority
+     * sequence (below captions -> bottom-left -> bottom-center -> top-left -> top-center), guaranteeing that the
+     * widget never overlaps native UI elements or extends outside thumbnail bounds. Top-right is explicitly
+     * excluded since YouTube consistently reserves top-right for mute/caption controls.
+     *
+     * @danishansari-dev video - Thumbnail preview video.
+     * @danishansari-dev vr - Preview video bounds.
+     * @danishansari-dev ww - Measured widget width.
+     * @danishansari-dev wh - Measured widget height.
+     * @danishansari-dev obstacles - Native overlay bounds to protect.
+     * @returns {{left: number, top: number, id: string}|null} Safe widget slot.
+     */
+    pickYouTubeThumbnailPosition(video, vr, ww, wh, obstacles) {
       const edge = YOUTUBE_THUMBNAIL_WIDGET_EDGE_PX;
       const minLeft = vr.left + edge;
       const maxLeft = vr.right - ww - edge;
@@ -1970,7 +2086,86 @@
         return null;
       }
 
-      return { left: minLeft, top: minTop };
+      const captions = this.getYouTubeThumbnailCaptionRects(video, vr);
+      const protectedRects = [...obstacles, ...captions];
+
+      // Helper function to test candidate slot bounds and obstacle clearance
+      const asClearSlot = (left, top, id) => {
+        const slot = { left, top, right: left + ww, bottom: top + wh, id };
+        if (
+          slot.left < minLeft || slot.right > vr.right - edge
+          || slot.top < minTop || slot.bottom > vr.bottom - edge
+          || !this.isYouTubeThumbnailSlotClear(slot, protectedRects)
+        ) {
+          return null;
+        }
+        return slot;
+      };
+
+      // Priority 1: Below subtitles / captions overlay (preferred position)
+      if (captions.length) {
+        const primaryCaption = captions.reduce((best, rect) => (
+          rect.bottom > best.bottom || (rect.bottom === best.bottom && rect.width > best.width) ? rect : best
+        ));
+        const belowTop = primaryCaption.bottom + edge;
+
+        if (belowTop <= maxTop) {
+          const candidates = [
+            primaryCaption.left,
+            primaryCaption.left + (primaryCaption.width - ww) / 2,
+            primaryCaption.right - ww,
+            minLeft,
+            maxLeft
+          ];
+
+          // Include gaps on either side of native overlays on the caption-following horizontal line
+          protectedRects.forEach((rect) => {
+            if (rect.bottom > belowTop && rect.top < belowTop + wh) {
+              candidates.push(rect.right + edge, rect.left - ww - edge);
+            }
+          });
+
+          const preferredLeft = primaryCaption.left + (primaryCaption.width - ww) / 2;
+          const uniqueCandidates = [...new Set(candidates.map((left) => Math.min(maxLeft, Math.max(minLeft, left))))]
+            .sort((a, b) => Math.abs(a - preferredLeft) - Math.abs(b - preferredLeft));
+
+          for (const left of uniqueCandidates) {
+            const slot = asClearSlot(left, belowTop, "below-captions");
+            if (slot) return slot;
+          }
+        }
+      }
+
+      // Priority 2 & 3: Bottom Row candidates (bottom-left, bottom-center, and clear bottom gaps)
+      const bottomCandidates = [
+        { left: minLeft, id: "bottom-left" },
+        { left: minLeft + (maxLeft - minLeft) / 2, id: "bottom-center" }
+      ];
+      protectedRects.forEach((rect) => {
+        if (rect.bottom > maxTop - edge && rect.top < maxTop + wh + edge) {
+          bottomCandidates.push({ left: rect.right + edge, id: "bottom-center" });
+        }
+      });
+      for (const cand of bottomCandidates) {
+        const left = Math.min(maxLeft, Math.max(minLeft, cand.left));
+        const slot = asClearSlot(left, maxTop, cand.id);
+        if (slot) return slot;
+      }
+
+      // Priority 4 & 5: Top Row candidates (top-left, top-center; strictly excluding top-right)
+      const maxTopLeft = minLeft + (maxLeft - minLeft) * 0.5;
+      const topCandidates = [
+        { left: minLeft, id: "top-left" },
+        { left: minLeft + (maxLeft - minLeft) / 2, id: "top-center" }
+      ];
+      for (const cand of topCandidates) {
+        const left = Math.min(maxTopLeft, Math.max(minLeft, cand.left));
+        const slot = asClearSlot(left, minTop, cand.id);
+        if (slot) return slot;
+      }
+
+      // If no candidate position is completely clear of YouTube overlays, hide widget to avoid covering native UI
+      return null;
     }
 
     /**
@@ -2183,6 +2378,7 @@
       this.widget.style.bottom = "auto";
 
       if (!rect || rect.width < 80 || rect.height < 80) {
+        this.widget.style.display = "none";
         this.widget.style.left = "";
         this.widget.style.top = "";
         this.widget.classList.remove("ysc-speed-widget--vertical");
@@ -2192,15 +2388,32 @@
       }
 
       const youtubeThumbnailLayout = this.isYouTubeCompactPreview(video, rect, fullscreenUi);
-      this.widget.style.display = "";
 
       if (youtubeThumbnailLayout) {
+        if (!this.floatingHoverActive) {
+          this.widget.style.display = "none";
+          return;
+        }
+
+        const isSmallThumbnail = rect.width < 230 || rect.height < 145;
+        this.widget.style.display = "";
         this.widget.classList.add("ysc-speed-widget--yt-thumbnail");
+        this.widget.classList.toggle("ysc-speed-widget--small-thumb", isSmallThumbnail);
         this.widget.classList.remove("ysc-speed-widget--vertical");
 
-        const ww = this.widget.offsetWidth || 92;
-        const wh = this.widget.offsetHeight || 30;
-        const position = this.pickYouTubeThumbnailPosition(rect, ww, wh);
+        const ww = this.widget.offsetWidth || (isSmallThumbnail ? 74 : 92);
+        const wh = this.widget.offsetHeight || (isSmallThumbnail ? 22 : 30);
+        const sourceTag = String(video.currentSrc || video.src || "").slice(-48);
+        const obstacleKey = `yt_thumb_${sourceTag}_${Math.round(rect.left)}_${Math.round(rect.top)}_${Math.round(rect.width)}_${Math.round(rect.height)}`;
+        const now = performance.now();
+
+        if (now - this.lastFloatingLayoutAt >= FLOATING_LAYOUT_MIN_MS || this.cachedObstacleKey !== obstacleKey) {
+          this.cachedObstacleRects = this.gatherObstacleRects(video, rect, { compactPreview: true });
+          this.cachedObstacleKey = obstacleKey;
+          this.lastFloatingLayoutAt = now;
+        }
+
+        const position = this.pickYouTubeThumbnailPosition(video, rect, ww, wh, this.cachedObstacleRects);
         if (!position) {
           this.widget.style.display = "none";
           this.resetFloatingHoverState();
@@ -2215,6 +2428,7 @@
 
       const verticalLayout = rect.height / rect.width >= 1.18;
       this.widget.classList.remove("ysc-speed-widget--yt-thumbnail");
+      this.widget.classList.remove("ysc-speed-widget--small-thumb");
       this.widget.classList.toggle("ysc-speed-widget--vertical", verticalLayout);
 
       const now = performance.now();
