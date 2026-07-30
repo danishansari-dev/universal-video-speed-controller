@@ -300,6 +300,36 @@ body > .ysc-speed-toast-visible {
   width: 12px;
 }
 
+/* Why this exists: Compact/small video thumbnails have very narrow bounds.
+   Scaling down widget padding, font-size, and button min-widths ensures controls
+   remain usable without extending beyond card boundaries or covering native UI. */
+.ysc-speed-widget.ysc-speed-widget--floating.ysc-speed-widget--yt-thumbnail.ysc-speed-widget--small-thumb {
+  border-radius: 6px;
+  gap: 0;
+  padding: 1px 2px;
+}
+
+.ysc-speed-widget.ysc-speed-widget--floating.ysc-speed-widget--yt-thumbnail.ysc-speed-widget--small-thumb .ysc-speed-button {
+  border-radius: 5px;
+  font-size: 9px;
+  height: 20px;
+  min-width: 20px;
+  padding: 0 1px;
+}
+
+.ysc-speed-widget.ysc-speed-widget--floating.ysc-speed-widget--yt-thumbnail.ysc-speed-widget--small-thumb .ysc-speed-rate {
+  border-radius: 5px;
+  font-size: 9px;
+  height: 20px;
+  min-width: 26px;
+  padding: 0 3px;
+}
+
+.ysc-speed-widget.ysc-speed-widget--floating.ysc-speed-widget--yt-thumbnail.ysc-speed-widget--small-thumb .ysc-speed-icon {
+  height: 10px;
+  width: 10px;
+}
+
 .ysc-speed-widget.ysc-speed-widget--floating.ysc-speed-widget--ambient.ysc-speed-widget--fs {
   transform: translateY(0) scale(1.06);
 }
