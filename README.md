@@ -17,7 +17,7 @@ The extension injects a native-feeling floating speed widget, toolbar popup cont
 
 * **Universal Player Detection**: Seamlessly detects and binds controls to standard HTML5 `<video>` tags on YouTube, Netflix, Vimeo, Coursera, Loom, Twitch, and custom lecture portals.
 * **Precise Speed Adjustments**: Adjust playback rate from `0.25x` to `10.0x` in customizable `0.05x` or `0.25x` step increments.
-* **Floating Widget**: A lightweight, autohiding `- / speed / +` widget overlaying the active video player. On YouTube, it integrates directly with the control bar.
+* **Floating Widget & YouTube Thumbnail Preview**: A lightweight, autohiding `- / speed / +` widget overlaying the active video player. Supports native main video controls as well as YouTube thumbnail preview hover cards with dynamic obstacle avoidance and adaptive small-card scaling.
 * **Keyboard Hotkeys**: Fully customizable hotkeys for speed up, slow down, speed reset, widget toggle, and fullscreen HUD toggle.
 * **Temporary Boost Mode**: Press and hold `X` to temporarily accelerate video playback (default `2x`); release the key to immediately restore the previous speed.
 * **Mouse Scroll & Touchpad Gestures**: Adjust speeds by holding `Ctrl` and scrolling your mouse wheel over the video player, or use pinch-in/pinch-out trackpad gestures.
@@ -86,6 +86,7 @@ The extension is designed to run cleanly, ensuring zero performance drops:
 
 * **Modular Singleton Orchestrator**: Code in `content.js` is partitioned into separate single-responsibility classes (`SettingsManager`, `DOMObserver`, `VideoController`, `WidgetUI`, `ToastUI`, `ShortcutManager`, `WheelManager`, `AnalyticsManager`) unified under a central `AppController`.
 * **High-Performance DOM Traversal**: Instead of periodic deep DOM scanning using CPU-heavy queries (which causes layout thrashing), the script listens to event-driven mutations (`MutationObserver`) and uses tree walkers to skip layout-only nodes. CPU overhead is close to 0%.
+* **YouTube Thumbnail Obstacle Clearance Algorithm**: Evaluates native YouTube overlay bounds (mute buttons, captions, time badges) and places the floating widget into candidate safe slots (below captions, bottom-left/center, top-left/center while strictly protecting YouTube's top-right control area). Dynamically hides the widget if no obstruction-free slot exists.
 * **Zero-Leak Lifecycle & Teardown**: To resolve extension context invalidation errors during reloads, the script registers a global `__youtubeSpeedControllerCleanup` callback. It completely tears down previous handlers, observers, timers, and elements before launching a new instance.
 * **Layout Compositing**: Uses hardware-accelerated GPU compositing (`transform: translate3d(0,0,0)`) on primary HUD animations to prevent frame drops.
 * **Graceful Degradation**: Core APIs fall back gracefully to defaults if the extension runtime gets invalidated or updated while a tab is open.
